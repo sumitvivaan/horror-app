@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { db } from '../lib/firebase';
+import { db, auth } from '../lib/firebase';
+import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, orderBy, query } from 'firebase/firestore';
 
-const ADMIN_PASSWORD = "bhoot123";
+const ADMIN_EMAIL = "vivaan2024koshiya@gmail.com";
 const CLOUD_NAME = "wlse6ksh";
 const UPLOAD_PRESET = "wlse6ksh";
-// ⬇️ LINE 9: APNI RAZORPAY KEY YAHAN DALO ⬇️
+// ⬇️ LINE 10: APNI RAZORPAY KEY YAHAN DALO ⬇️
 const RAZORPAY_KEY = "YAHAN_RAZORPAY_KEY_DALO";
 
 function formatTime(sec) {
@@ -20,7 +21,6 @@ export default function Home() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [showPanel, setShowPanel] = useState(false);
-  const [password, setPassword] = useState('');
   const [title, setTitle] = useState('');
   const [text, setText] = useState('');
   const [poster, setPoster] = useState('');
@@ -38,6 +38,9 @@ export default function Home() {
 
   useEffect(() => {
     loadStories();
+    onAuthStateChanged(auth, (u) => {
+      setIsAdmin(!!u && u.email === ADMIN_EMAIL);
+    });
     try { setUnlocked(JSON.parse(localStorage.getItem('unlocked') || '[]')); } catch (e) {}
     const s = document.createElement('script');
     s.src = 'https://checkout.razorpay.com/v1/checkout.js';
@@ -53,9 +56,17 @@ export default function Home() {
     setLoading(false);
   };
 
-  const handleLogin = () => {
-    if (password === ADMIN_PASSWORD) { setIsAdmin(true); setShowLogin(false); setShowPanel(true); setPassword(''); }
-    else { alert('Galat password!'); }
+  const handleLogin = async () => {
+    try {
+      const res = await signInWithPopup(auth, new GoogleAuthProvider());
+      if (res.user.email !== ADMIN_EMAIL) {
+        alert('Yeh admin ka email nahi hai! ❌');
+        await signOut(auth);
+      } else {
+        setShowLogin(false); setShowPanel(true);
+        alert('Welcome Admin! ✅');
+      }
+    } catch (e) { alert('Login error: ' + e.message); }
   };
 
   const clearForm = () => { setTitle(''); setText(''); setPoster(''); setAudio(''); setPrice('0'); setEditId(null); };
@@ -106,7 +117,7 @@ export default function Home() {
   const isUnlocked = (story) => !story.price || story.price === 0 || unlocked.includes(story.id) || isAdmin;
 
   const payStory = (story) => {
-    if (RAZORPAY_KEY.includes('YAHAN')) return alert('Razorpay Key abhi nahi dali gayi! Line 9 mein dalo.');
+    if (RAZORPAY_KEY.includes('YAHAN')) return alert('Razorpay Key abhi nahi dali gayi! Line 10 mein dalo.');
     const rzp = new window.Razorpay({
       key: RAZORPAY_KEY, amount: story.price * 100, currency: 'INR',
       name: 'साया - खौफ़ की कहानियाँ', description: story.title,
@@ -190,34 +201,26 @@ export default function Home() {
     <div style={{ backgroundColor: '#0a0a10', color: '#fff', minHeight: '100vh', fontFamily: 'sans-serif' }}>
       <style>{css}</style>
 
-      {/* ============ MAIN PAGE (blurs when modal open) ============ */}
       <div style={{ filter: blurBg ? 'blur(8px)' : 'none', pointerEvents: blurBg ? 'none' : 'auto', transition: 'filter 0.3s' }}>
 
-        {/* ===== HALLOWEEN HERO SCENE ===== */}
         <div style={{ background: 'linear-gradient(180deg, #0d0d1a 0%, #1a0d05 70%, #0a0a10 100%)', textAlign: 'center', position: 'relative', overflow: 'hidden', paddingBottom: '10px' }}>
-
-          {/* Bats */}
           <div className="bat" style={{ position: 'absolute', top: '30px', left: '12%', fontSize: '1.6rem' }}>🦇</div>
           <div className="bat bat2" style={{ position: 'absolute', top: '70px', right: '18%', fontSize: '1.2rem' }}>🦇</div>
           <div className="bat" style={{ position: 'absolute', top: '110px', left: '25%', fontSize: '1rem' }}>🦇</div>
 
-          {/* Big Moon + Haunted House */}
           <div style={{ position: 'relative', width: '230px', height: '230px', margin: '35px auto 0' }}>
             <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'radial-gradient(circle at 38% 35%, #ffe38a 0%, #ffb339 40%, #ff7b00 75%, #cc4d00 100%)', boxShadow: '0 0 90px rgba(255,140,0,0.55), 0 0 180px rgba(255,100,0,0.25)' }}></div>
             <div style={{ position: 'absolute', bottom: '-14px', left: '50%', transform: 'translateX(-50%)', fontSize: '5rem', filter: 'brightness(0.25) contrast(1.4)' }}>🏰</div>
             <div style={{ position: 'absolute', top: '35px', right: '18px', fontSize: '1.1rem' }}>🦇</div>
           </div>
 
-          {/* Dead tree sides */}
           <div style={{ position: 'absolute', bottom: '55px', left: '-15px', fontSize: '4.5rem', filter: 'brightness(0.2)', transform: 'scaleX(-1)' }}>🌳</div>
           <div style={{ position: 'absolute', bottom: '55px', right: '-15px', fontSize: '4.5rem', filter: 'brightness(0.2)' }}>🌳</div>
 
-          {/* Title */}
           <h1 className="sayaTitle" style={{ fontSize: '3.6rem', color: '#ff6600', margin: '18px 0 0', letterSpacing: '6px', fontFamily: 'Georgia, serif' }}>साया</h1>
           <p style={{ color: '#ffaa55', marginTop: '4px', fontSize: '1.15rem', letterSpacing: '2px' }}>खौफ़ की हिंदी कहानियाँ</p>
           <p style={{ color: '#8a6a4a', marginTop: '5px', fontSize: '0.85rem', fontStyle: 'italic' }}>"डर सिर्फ एक कहानी की दूरी पर है..."</p>
 
-          {/* Pumpkin row */}
           <div style={{ marginTop: '12px', fontSize: '1.9rem', letterSpacing: '12px' }}>
             <span className="pump">🎃</span><span className="pump" style={{ animationDelay: '1s' }}>🎃</span><span className="pump" style={{ animationDelay: '2s' }}>🎃</span>
           </div>
@@ -226,7 +229,6 @@ export default function Home() {
           {isAdmin && <div><button onClick={() => setShowPanel(true)} style={{ ...orgBtn, marginTop: '12px', padding: '10px 25px' }}>📝 Story Add/Manage Karo</button></div>}
         </div>
 
-        {/* ===== TABS ===== */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', padding: '18px 15px 5px', maxWidth: '500px', margin: '0 auto' }}>
           <div onClick={() => setTab('audio')} style={{ flex: 1, textAlign: 'center', padding: '18px 10px', borderRadius: '16px', cursor: 'pointer', background: tab === 'audio' ? 'linear-gradient(145deg, #8a3d00, #4d2200)' : '#14141a', border: tab === 'audio' ? '2px solid #ff6600' : '2px solid #26262e', boxShadow: tab === 'audio' ? '0 0 22px rgba(255,102,0,0.4)' : 'none' }}>
             <div style={{ fontSize: '2.3rem' }}>🔊</div>
@@ -240,7 +242,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ===== GRID ===== */}
         <div style={{ maxWidth: '800px', margin: '0 auto', padding: '15px' }}>
           {loading && <p style={{ color: '#888', textAlign: 'center', padding: '40px' }}>Loading... 🎃</p>}
           {!loading && showList.length === 0 && <p style={{ color: '#666', textAlign: 'center', padding: '40px' }}>{tab === 'audio' ? '🔊 अभी कोई ऑडियो कहानी नहीं...' : '📖 अभी कोई लिखी कहानी नहीं...'}</p>}
@@ -276,7 +277,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ============ STORY MODAL - DARAWANA FRAME (blur ke upar) ============ */}
       {readingStory && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(5,2,0,0.6)', zIndex: 100, overflowY: 'auto', padding: '15px' }}>
           <div style={{ maxWidth: '650px', margin: '35px auto 30px' }}>
@@ -346,18 +346,16 @@ export default function Home() {
         </div>
       )}
 
-      {/* ============ LOGIN MODAL ============ */}
       {showLogin && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 100, padding: '20px' }} onClick={() => setShowLogin(false)}>
           <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#1a1410', padding: '30px', borderRadius: '16px', border: '2px solid #ff6600', width: '100%', maxWidth: '350px', boxShadow: '0 0 40px rgba(255,102,0,0.3)' }}>
             <h2 style={{ color: '#ff8822', marginTop: 0, textAlign: 'center' }}>🔐 Admin Login</h2>
-            <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} style={inputStyle} />
-            <button onClick={handleLogin} style={{ ...orgBtn, width: '100%', padding: '14px', fontSize: '1rem' }}>Login</button>
+            <p style={{ color: '#8a6a4a', fontSize: '0.85rem', textAlign: 'center' }}>Sirf admin ka Google account chalega</p>
+            <button onClick={handleLogin} style={{ ...orgBtn, width: '100%', padding: '14px', fontSize: '1rem' }}>🔑 Google Se Login Karo</button>
           </div>
         </div>
       )}
 
-      {/* ============ ADMIN PANEL MODAL ============ */}
       {showPanel && isAdmin && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', zIndex: 100, padding: '20px', overflowY: 'auto' }}>
           <div style={{ backgroundColor: '#1a1410', padding: '25px', borderRadius: '16px', border: editId ? '2px solid #ffaa00' : '2px solid #ff6600', width: '100%', maxWidth: '550px', margin: '20px 0', boxShadow: '0 0 40px rgba(255,102,0,0.3)' }}>
