@@ -1,11 +1,3 @@
-Bhai, samajh gaya! Ab maine **dono pages ko darawana bana diya**:
-
-1. **Home page (साया)** → Peeche **chand, chauwe, dhundh (fog), darawana aasmaan** + title pe **flicker** (jaise mombatti jhalmata hai)
-2. **Story page** → Peeche **blur darawana background**, story ek **horror frame** me (kone me 💀 💀) — jaise purani bhootiyi kitab
-
-Purana code **delete** kar do, ye **poora naya code** paste karo:
-
-```jsx
 import { useState, useEffect, useRef } from 'react';
 import { db } from '../lib/firebase';
 import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, orderBy, query } from 'firebase/firestore';
@@ -492,43 +484,3 @@ export default function Home() {
     </div>
   );
 }
-```
-
----
-
-## Ab Kya Hoga
-
-| Page | Kaise Dikhega |
-|---|---|
-| **Home (साया)** | Peeche **chand + chauwe udte hue + dhundh (fog) + darawana aasmaan**. "साया" pe **flicker** (jhalmata hua laal glow) |
-| **Story** | Peeche **blur darawana background**, story ek **horror frame** me (kone me 💀 + 🕸️🕸️) — jaise purani bhootiyi kitab |
-| **Audio** | Frame ke andar, visualizer + timing + play buttons |
-| **Paid** | 🔒 lock + Unlock button |
-| **Download** | Green "📥 Download" buttons |
-
----
-
-## Ek Extra Option (Apna Background Lagana)
-
-Abhi CSS wala spooky background hai (reliable, kabhi nahi tootega).
-
-Agar **apni darawani image** lagani hai (jaise Halloween screenshot jaisi):
-
-1. Cloudinary pe ek **Halloween background image** upload karo
-2. Uska URL copy karo
-3. Code ki **upar wali line** me daalo:
-
-```js
-const HOME_BG_IMAGE = "https://res.cloudinary.com/wlse6ksh/.../tumhari-image.jpg";
-```
-
-Bas. Ab home page pe tumhari image aayegi (chand + chauwe + fog uske upar).
-
----
-
-**Ye 3 kaam karo:**
-1. Purana code delete, naya code paste
-2. Line 6 me apni **Razorpay key** daalo
-3. Vercel pe **redeploy** karo
-
-Phir **phone pe screenshot bhej do** (home + story dono). Main dekh lunga darawana aaya ya nahi. 👻
