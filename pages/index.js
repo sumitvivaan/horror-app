@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { db } from '../lib/firebase';
-import { collection, addDoc, getDocs, deleteDoc, doc, orderBy, query } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, orderBy, query } from 'firebase/firestore';
 
 const ADMIN_PASSWORD = "bhoot123";
 
@@ -15,6 +15,7 @@ export default function Home() {
   const [poster, setPoster] = useState('');
   const [audio, setAudio] = useState('');
   const [price, setPrice] = useState('0');
+  const [editId, setEditId] = useState(null);
   const [tab, setTab] = useState('audio');
   const [readingStory, setReadingStory] = useState(null);
   const [playing, setPlaying] = useState(false);
@@ -36,23 +37,50 @@ export default function Home() {
     else { alert('Galat password!'); }
   };
 
-  const addStory = async () => {
+  const clearForm = () => {
+    setTitle(''); setText(''); setPoster(''); setAudio(''); setPrice('0'); setEditId(null);
+  };
+
+  const saveStory = async () => {
     if (!title) return alert('Title toh likho bhai!');
     if (!text && !audio) return alert('Ya toh Story Text likho, ya Audio ka link dalo (ya dono)!');
     try {
-      await addDoc(collection(db, "stories"), {
-        title,
-        text: text || '',
-        poster: poster || '',
-        audio: audio || '',
-        price: parseInt(price) || 0,
-        createdAt: Date.now(),
-        date: new Date().toLocaleDateString('hi-IN')
-      });
-      setTitle(''); setText(''); setPoster(''); setAudio(''); setPrice('0');
-      alert('Publish ho gayi! 👻');
+      if (editId) {
+        // ===== UPDATE (EDIT) =====
+        await updateDoc(doc(db, "stories", editId), {
+          title,
+          text: text || '',
+          poster: poster || '',
+          audio: audio || '',
+          price: parseInt(price) || 0
+        });
+        alert('Story update ho gayi! ✏️');
+      } else {
+        // ===== NAYI STORY =====
+        await addDoc(collection(db, "stories"), {
+          title,
+          text: text || '',
+          poster: poster || '',
+          audio: audio || '',
+          price: parseInt(price) || 0,
+          createdAt: Date.now(),
+          date: new Date().toLocaleDateString('hi-IN')
+        });
+        alert('Publish ho gayi! 👻');
+      }
+      clearForm();
       loadStories();
     } catch (e) { alert('Error: ' + e.message); }
+  };
+
+  const startEdit = (story) => {
+    setEditId(story.id);
+    setTitle(story.title || '');
+    setText(story.text || '');
+    setPoster(story.poster || '');
+    setAudio(story.audio || '');
+    setPrice(String(story.price || 0));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const removeStory = async (id) => {
@@ -117,42 +145,37 @@ export default function Home() {
   return (
     <div style={{ backgroundColor: '#0d0d0d', color: '#fff', minHeight: '100vh', fontFamily: 'sans-serif' }}>
 
-      <div style={{ background: 'linear-gradient(180deg, #1a0000, #0d0d0d)', padding: '35px 20px 20px', textAlign: 'center' }}>
-        <h1 style={{ fontSize: '2rem', color: '#ff2222', margin: 0, textShadow: '0 0 20px rgba(255,0,0,0.4)' }}>👻 भूतिया कहानियाँ</h1>
-        <p style={{ color: '#999', marginTop: '8px', fontSize: '0.95rem' }}>डर सिर्फ एक कहानी की दूरी पर है...</p>
+      {/* ======= NAYA HEADER: साया ======= */}
+      <div style={{ background: 'linear-gradient(180deg, #1a0000, #0d0d0d)', padding: '40px 20px 20px', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '3rem', color: '#ff2222', margin: 0, textShadow: '0 0 30px rgba(255,0,0,0.6)', letterSpacing: '3px', fontFamily: 'Georgia, serif' }}>साया</h1>
+        <p style={{ color: '#bbb', marginTop: '6px', fontSize: '1.05rem', letterSpacing: '1px' }}>खौफ़ की हिंदी कहानियाँ</p>
+        <p style={{ color: '#666', marginTop: '4px', fontSize: '0.8rem' }}>डर सिर्फ एक कहानी की दूरी पर है...</p>
         {!isAdmin && <button onClick={() => setShowLogin(!showLogin)} style={{ marginTop: '10px', padding: '5px 14px', backgroundColor: 'transparent', color: '#444', border: '1px solid #2a2a2a', borderRadius: '20px', cursor: 'pointer', fontSize: '0.75rem' }}>Admin</button>}
         {isAdmin && <p style={{ color: '#00ff00', marginTop: '10px', fontSize: '0.9rem' }}>✅ Admin Mode ON</p>}
       </div>
 
-      {/* ======= SUNDAR 2 SECTION CARDS ======= */}
+      {/* ======= 2 SECTION CARDS ======= */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', padding: '15px 15px 5px', maxWidth: '500px', margin: '0 auto' }}>
-
-        {/* SUNO Card */}
         <div onClick={() => setTab('audio')} style={{
           flex: 1, textAlign: 'center', padding: '18px 10px', borderRadius: '16px', cursor: 'pointer',
           background: tab === 'audio' ? 'linear-gradient(145deg, #8B0000, #4d0000)' : '#161616',
           border: tab === 'audio' ? '2px solid #ff2222' : '2px solid #2a2a2a',
-          boxShadow: tab === 'audio' ? '0 0 20px rgba(255,0,0,0.35)' : 'none',
-          transition: 'all 0.2s'
+          boxShadow: tab === 'audio' ? '0 0 20px rgba(255,0,0,0.35)' : 'none', transition: 'all 0.2s'
         }}>
           <div style={{ fontSize: '2.3rem' }}>🔊</div>
           <div style={{ fontSize: '1.15rem', fontWeight: 'bold', marginTop: '6px', color: tab === 'audio' ? '#fff' : '#888' }}>सुनो</div>
           <div style={{ fontSize: '0.75rem', color: tab === 'audio' ? '#ffbbbb' : '#555', marginTop: '3px' }}>ऑडियो कहानियाँ</div>
         </div>
-
-        {/* PADHO Card */}
         <div onClick={() => setTab('text')} style={{
           flex: 1, textAlign: 'center', padding: '18px 10px', borderRadius: '16px', cursor: 'pointer',
           background: tab === 'text' ? 'linear-gradient(145deg, #8B0000, #4d0000)' : '#161616',
           border: tab === 'text' ? '2px solid #ff2222' : '2px solid #2a2a2a',
-          boxShadow: tab === 'text' ? '0 0 20px rgba(255,0,0,0.35)' : 'none',
-          transition: 'all 0.2s'
+          boxShadow: tab === 'text' ? '0 0 20px rgba(255,0,0,0.35)' : 'none', transition: 'all 0.2s'
         }}>
           <div style={{ fontSize: '2.3rem' }}>📖</div>
           <div style={{ fontSize: '1.15rem', fontWeight: 'bold', marginTop: '6px', color: tab === 'text' ? '#fff' : '#888' }}>पढ़ो</div>
           <div style={{ fontSize: '0.75rem', color: tab === 'text' ? '#ffbbbb' : '#555', marginTop: '3px' }}>लिखी कहानियाँ</div>
         </div>
-
       </div>
 
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '15px' }}>
@@ -165,18 +188,25 @@ export default function Home() {
         )}
 
         {isAdmin && (
-          <div style={{ backgroundColor: '#161616', padding: '20px', borderRadius: '12px', marginBottom: '25px', border: '1px solid #ff0000' }}>
-            <h2 style={{ color: '#ff2222', marginTop: 0, fontSize: '1.3rem' }}>📝 Nayi Story/Audio Add Karo</h2>
-            <p style={{ color: '#888', fontSize: '0.85rem', marginTop: 0 }}>Sirf Audio dalo toh 🔊 सुनो mein aayegi. Sirf Text likho toh 📖 पढ़ो mein. Dono dalo toh dono mein!</p>
+          <div style={{ backgroundColor: '#161616', padding: '20px', borderRadius: '12px', marginBottom: '25px', border: editId ? '2px solid #ffaa00' : '1px solid #ff0000' }}>
+            <h2 style={{ color: editId ? '#ffaa00' : '#ff2222', marginTop: 0, fontSize: '1.3rem' }}>
+              {editId ? '✏️ Story Edit Kar Rahe Ho' : '📝 Nayi Story/Audio Add Karo'}
+            </h2>
+            {editId && <p style={{ color: '#ffaa00', fontSize: '0.85rem', marginTop: 0 }}>Purani values niche bhari hain. Jo badalna hai badlo, phir Update dabao.</p>}
             <input type="text" placeholder="Title (zaroori hai)" value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} />
-            <input type="text" placeholder="Poster Link (postimages.org se) - Optional" value={poster} onChange={(e) => setPoster(e.target.value)} style={inputStyle} />
-            <input type="text" placeholder="Audio Link (catbox.moe se) - Audio story ke liye" value={audio} onChange={(e) => setAudio(e.target.value)} style={inputStyle} />
-            <textarea placeholder="Story Text - Padhne wali story ke liye (audio-only ho toh khali chhodo)" value={text} onChange={(e) => setText(e.target.value)} rows="6" style={{ ...inputStyle, resize: 'vertical' }} />
+            <input type="text" placeholder="Poster Link (postimages.org se)" value={poster} onChange={(e) => setPoster(e.target.value)} style={inputStyle} />
+            <input type="text" placeholder="Audio Link (catbox.moe se)" value={audio} onChange={(e) => setAudio(e.target.value)} style={inputStyle} />
+            <textarea placeholder="Story Text (audio-only ho toh khali chhodo)" value={text} onChange={(e) => setText(e.target.value)} rows="6" style={{ ...inputStyle, resize: 'vertical' }} />
             <div style={{ marginBottom: '12px' }}>
               <label style={{ color: '#aaa', marginRight: '10px' }}>💰 Price ₹ (0 = Free):</label>
               <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} style={{ width: '100px', padding: '10px', backgroundColor: '#0a0a0a', color: 'white', border: '1px solid #444', borderRadius: '8px' }} />
             </div>
-            <button onClick={addStory} style={{ width: '100%', padding: '15px', backgroundColor: '#ff0000', color: 'white', border: 'none', borderRadius: '8px', fontSize: '1.05rem', cursor: 'pointer', fontWeight: 'bold' }}>✅ Publish Karo</button>
+            <button onClick={saveStory} style={{ width: '100%', padding: '15px', backgroundColor: editId ? '#ffaa00' : '#ff0000', color: editId ? '#000' : 'white', border: 'none', borderRadius: '8px', fontSize: '1.05rem', cursor: 'pointer', fontWeight: 'bold' }}>
+              {editId ? '✏️ Update Karo' : '✅ Publish Karo'}
+            </button>
+            {editId && (
+              <button onClick={clearForm} style={{ width: '100%', padding: '12px', marginTop: '10px', backgroundColor: '#333', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>❌ Edit Cancel Karo</button>
+            )}
           </div>
         )}
 
@@ -199,16 +229,20 @@ export default function Home() {
                   <h3 style={{ color: '#fff', margin: '10px 0 0', fontSize: '0.95rem', textAlign: 'center' }}>{story.title}</h3>
                 </div>
               )}
-              {story.audio && tab === 'audio' && <span style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: 'rgba(255,0,0,0.85)', borderRadius: '20px', padding: '3px 8px', fontSize: '0.7rem' }}>🔊</span>}
               {story.price > 0 && <span style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: 'rgba(255,180,0,0.9)', color: '#000', borderRadius: '20px', padding: '3px 8px', fontSize: '0.7rem', fontWeight: 'bold' }}>🔒 ₹{story.price}</span>}
+              
+              {/* ===== ADMIN: EDIT + DELETE BUTTONS ===== */}
               {isAdmin && (
-                <button onClick={(e) => { e.stopPropagation(); removeStory(story.id); }} style={{ position: 'absolute', bottom: '8px', right: '8px', backgroundColor: 'rgba(0,0,0,0.7)', color: '#ff4444', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer' }}>🗑️</button>
+                <div style={{ position: 'absolute', bottom: '8px', right: '8px', display: 'flex', gap: '6px' }}>
+                  <button onClick={(e) => { e.stopPropagation(); startEdit(story); }} style={{ backgroundColor: 'rgba(255,170,0,0.9)', color: '#000', border: 'none', borderRadius: '50%', width: '34px', height: '34px', cursor: 'pointer', fontSize: '0.9rem' }}>✏️</button>
+                  <button onClick={(e) => { e.stopPropagation(); removeStory(story.id); }} style={{ backgroundColor: 'rgba(0,0,0,0.7)', color: '#ff4444', border: 'none', borderRadius: '50%', width: '34px', height: '34px', cursor: 'pointer' }}>🗑️</button>
+                </div>
               )}
             </div>
           ))}
         </div>
 
-        <p style={{ textAlign: 'center', color: '#333', padding: '30px 0', fontSize: '0.8rem' }}>© भूतिया कहानियाँ</p>
+        <p style={{ textAlign: 'center', color: '#333', padding: '30px 0', fontSize: '0.8rem' }}>© साया - खौफ़ की हिंदी कहानियाँ</p>
       </div>
     </div>
   );
