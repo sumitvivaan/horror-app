@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Head from 'next/head';
 
 const CONTACT_EMAIL = "vivaan2024koshiya@gmail.com";
-const CONTACT_PHONE = "+91-9654055269";
+const CONTACT_PHONE = "";
 const SITE_NAME = "साया (Saaya)";
 const SITE_URL = "https://horror-app-liard.vercel.app";
 
