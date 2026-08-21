@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import Head from 'next/head';
 import { db, auth } from '../lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, orderBy, query } from 'firebase/firestore';
