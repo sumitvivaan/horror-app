@@ -60,7 +60,7 @@ export default function Policy() {
               <p style={p}>Have a question, complaint, payment issue, or feedback? We are happy to help!</p>
               <div style={{ backgroundColor: '#0a0a10', borderRadius: '10px', padding: '20px', border: '1px solid #2a2a35', marginTop: '15px' }}>
                 <p style={{ ...p, margin: '8px 0' }}>📧 <b>Email:</b> <a href={'mailto:' + CONTACT_EMAIL} style={{ color: '#ffaa55' }}>{CONTACT_EMAIL}</a></p>
-                <p style={{ ...p, margin: '8px 0' }}>📱 <b>Phone/WhatsApp:</b> {CONTACT_PHONE}</p>
+                
                 <p style={{ ...p, margin: '8px 0' }}>🌐 <b>Website:</b> {SITE_URL}</p>
                 <p style={{ ...p, margin: '8px 0' }}>⏰ <b>Support Hours:</b> Monday – Saturday, 10:00 AM – 7:00 PM IST</p>
               </div>
