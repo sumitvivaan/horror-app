@@ -24,6 +24,8 @@ function formatViews(n) {
   return String(n);
 }
 
+const isNew = (s) => s.createdAt && (Date.now() - s.createdAt) < 7 * 24 * 3600 * 1000;
+
 export default function Home() {
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,6 +55,7 @@ export default function Home() {
   const [ambOn, setAmbOn] = useState(false);
   const [fearVotes, setFearVotes] = useState({});
   const [sharesCnt, setSharesCnt] = useState({});
+  const [heroIdx, setHeroIdx] = useState(0);
   const audioRef = useRef(null);
   const ambRef = useRef(null);
 
@@ -72,7 +75,8 @@ export default function Home() {
       const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000), sc = Math.floor((diff % 60000) / 1000);
       setOfferLeft(h + 'घं ' + m + 'मि ' + sc + 'से');
     }, 1000);
-    return () => clearInterval(t);
+    const ht = setInterval(() => setHeroIdx(i => i + 1), 4000);
+    return () => { clearInterval(t); clearInterval(ht); };
   }, []);
 
   const loadStories = async () => {
@@ -217,7 +221,6 @@ export default function Home() {
   };
 
   const toggleAmb = () => {
-    if (AMBIENCE_URL.includes('YAHAN')) return alert('Ambience sound ka link abhi code mein nahi dala gaya!');
     if (!ambRef.current) { ambRef.current = new Audio(AMBIENCE_URL); ambRef.current.loop = true; ambRef.current.volume = 0.2; }
     if (ambOn) { ambRef.current.pause(); setAmbOn(false); }
     else { ambRef.current.play().catch(() => {}); setAmbOn(true); }
@@ -315,6 +318,10 @@ export default function Home() {
   const audioStories = langStories.filter(s => s.audio);
   const textStories = langStories.filter(s => s.text);
   const showList = tab === 'audio' ? audioStories : textStories;
+  const heroList = langStories.filter(s => s.poster).slice(0, 5);
+  const hero = heroList.length ? heroList[heroIdx % heroList.length] : null;
+  const trending = [...langStories].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
+  const newest = langStories.slice(0, 8);
   const blurBg = showLogin || (showPanel && isAdmin) || readingStory || showWheel;
   const isEng = lang === 'english';
 
@@ -322,19 +329,25 @@ export default function Home() {
     @keyframes bounce1 { 0%,100%{height:8px} 50%{height:26px} }
     @keyframes bounce2 { 0%,100%{height:20px} 50%{height:6px} }
     @keyframes bounce3 { 0%,100%{height:12px} 50%{height:30px} }
-    @keyframes flyBat { 0%{transform:translateX(0) translateY(0)} 25%{transform:translateX(30px) translateY(-15px)} 50%{transform:translateX(60px) translateY(5px)} 75%{transform:translateX(30px) translateY(-10px)} 100%{transform:translateX(0) translateY(0)} }
-    @keyframes glow { 0%,100%{text-shadow:0 0 20px rgba(255,102,0,0.6)} 50%{text-shadow:0 0 45px rgba(255,102,0,1)} }
-    @keyframes flicker { 0%,100%{opacity:1} 45%{opacity:1} 50%{opacity:0.6} 55%{opacity:1} }
+    @keyframes glow { 0%,100%{text-shadow:0 0 15px rgba(255,102,0,0.6)} 50%{text-shadow:0 0 35px rgba(255,102,0,1)} }
     @keyframes wob { 0%,100%{transform:rotate(-8deg)} 50%{transform:rotate(8deg)} }
+    @keyframes heroFade { from{opacity:0.4; transform:scale(1.04)} to{opacity:1; transform:scale(1)} }
+    @keyframes shimmer { 0%{background-position:-400px 0} 100%{background-position:400px 0} }
+    @keyframes pulseNew { 0%,100%{opacity:1} 50%{opacity:0.6} }
     .vbar { width:5px; background:#ff6600; border-radius:3px; }
     .playing .b1 { animation: bounce1 0.7s infinite; } .playing .b2 { animation: bounce2 0.5s infinite; }
     .playing .b3 { animation: bounce3 0.8s infinite; } .playing .b4 { animation: bounce2 0.6s infinite; }
     .playing .b5 { animation: bounce1 0.9s infinite; }
-    .bat { display:inline-block; animation: flyBat 5s infinite ease-in-out; }
-    .bat2 { animation-duration: 7s; animation-delay: 1s; }
     .sayaTitle { animation: glow 3s infinite; }
-    .pump { animation: flicker 4s infinite; }
     .wobble { display:inline-block; animation: wob 1.5s infinite; }
+    .heroImg { animation: heroFade 0.8s ease; }
+    .row { display:flex; overflow-x:auto; gap:12px; padding:12px 4px 18px; scrollbar-width:none; -ms-overflow-style:none; }
+    .row::-webkit-scrollbar { display:none; }
+    .card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+    .card:hover { transform: scale(1.06); box-shadow: 0 6px 30px rgba(255,102,0,0.4); z-index:2; }
+    .card:hover img { filter: brightness(1.1); }
+    .skel { background: linear-gradient(90deg,#14141a 25%,#20202a 50%,#14141a 75%); background-size:800px 100%; animation: shimmer 1.3s infinite; border-radius:12px; }
+    .newBadge { animation: pulseNew 1.5s infinite; }
     input[type=range] { -webkit-appearance:none; width:100%; height:6px; border-radius:5px; background:#3a2410; outline:none; }
     input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#ff6600; cursor:pointer; box-shadow:0 0 10px rgba(255,102,0,0.9); }
     .frame { border: 4px solid #c9962e; border-radius: 14px; position: relative;
@@ -344,8 +357,24 @@ export default function Home() {
       font-size:2.2rem; filter: drop-shadow(0 0 10px rgba(255,150,0,0.8)); }
     .frame .corner { position:absolute; font-size:1.1rem; opacity:0.9; }
     .skullBtn { background:none; border:none; font-size:1.7rem; cursor:pointer; filter:grayscale(1); transition: all 0.2s; }
-    .skullBtn.on { filter:grayscale(0); transform:scale(1.15); }
+    .rankNum { font-size:5.5rem; font-weight:900; color:transparent; -webkit-text-stroke: 2px #ff6600; font-family:sans-serif; line-height:1; opacity:0.85; }
   `;
+
+  const posterCard = (story, w) => (
+    <div key={story.id} onClick={() => openStory(story)} className="card" style={{ minWidth: w, width: w, backgroundColor: '#14141a', borderRadius: '12px', overflow: 'hidden', border: '1px solid #2a2a35', cursor: 'pointer', position: 'relative', flexShrink: 0 }}>
+      {story.poster ? (
+        <img src={story.poster} alt={story.title} style={{ width: '100%', height: '190px', objectFit: 'cover', display: 'block' }} />
+      ) : (
+        <div style={{ height: '190px', background: 'linear-gradient(135deg, #1a1005, #33200a)', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '2.5rem' }}>{story.audio ? '🔊' : '🎃'}</div>
+      )}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', padding: '25px 8px 6px' }}>
+        <h3 style={{ color: '#fff', margin: 0, fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{story.title}</h3>
+        <p style={{ color: '#ffaa55', margin: '3px 0 0', fontSize: '0.68rem' }}>👁️ {formatViews(story.views)}{story.fearCount ? ' • 😱 ' + fearPct(story) + '%' : ''}</p>
+      </div>
+      {isNew(story) && <span className="newBadge" style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#e50914', color: '#fff', borderRadius: '4px', padding: '2px 7px', fontSize: '0.65rem', fontWeight: 'bold' }}>NEW</span>}
+      {story.price > 0 && !isUnlocked(story) && <span style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: 'rgba(255,102,0,0.95)', color: '#fff', borderRadius: '20px', padding: '3px 8px', fontSize: '0.68rem', fontWeight: 'bold' }}>🔒 ₹{story.price}</span>}
+    </div>
+  );
 
   return (
     <div style={{ backgroundColor: '#0a0a10', color: '#fff', minHeight: '100vh', fontFamily: 'sans-serif' }}>
@@ -354,91 +383,125 @@ export default function Home() {
 
       <div style={{ filter: blurBg ? 'blur(8px)' : 'none', pointerEvents: blurBg ? 'none' : 'auto', transition: 'filter 0.3s' }}>
 
-        <div style={{ background: 'linear-gradient(180deg, #0d0d1a 0%, #1a0d05 70%, #0a0a10 100%)', textAlign: 'center', position: 'relative', overflow: 'hidden', paddingBottom: '10px' }}>
-          <div className="bat" style={{ position: 'absolute', top: '30px', left: '12%', fontSize: '1.6rem' }}>🦇</div>
-          <div className="bat bat2" style={{ position: 'absolute', top: '70px', right: '18%', fontSize: '1.2rem' }}>🦇</div>
-          <div className="bat" style={{ position: 'absolute', top: '110px', left: '25%', fontSize: '1rem' }}>🦇</div>
-
-          <div style={{ position: 'relative', width: '230px', height: '230px', margin: '35px auto 0' }}>
-            <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'radial-gradient(circle at 38% 35%, #ffe38a 0%, #ffb339 40%, #ff7b00 75%, #cc4d00 100%)', boxShadow: '0 0 90px rgba(255,140,0,0.55), 0 0 180px rgba(255,100,0,0.25)' }}></div>
-            <div style={{ position: 'absolute', bottom: '-14px', left: '50%', transform: 'translateX(-50%)', fontSize: '5rem', filter: 'brightness(0.25) contrast(1.4)' }}>🏰</div>
-            <div style={{ position: 'absolute', top: '35px', right: '18px', fontSize: '1.1rem' }}>🦇</div>
-          </div>
-
-          <div style={{ position: 'absolute', bottom: '55px', left: '-15px', fontSize: '4.5rem', filter: 'brightness(0.2)', transform: 'scaleX(-1)' }}>🌳</div>
-          <div style={{ position: 'absolute', bottom: '55px', right: '-15px', fontSize: '4.5rem', filter: 'brightness(0.2)' }}>🌳</div>
-
-          <h1 className="sayaTitle" style={{ fontSize: '3.6rem', color: '#ff6600', margin: '18px 0 0', letterSpacing: '6px', fontFamily: 'Georgia, serif' }}>साया</h1>
-          <p style={{ color: '#ffaa55', marginTop: '4px', fontSize: '1.15rem', letterSpacing: '2px' }}>{isEng ? 'Horror Stories in English' : 'खौफ़ की हिंदी कहानियाँ'}</p>
-          <p style={{ color: '#8a6a4a', marginTop: '5px', fontSize: '0.85rem', fontStyle: 'italic' }}>{isEng ? '"Fear is just one story away..."' : '"डर सिर्फ एक कहानी की दूरी पर है..."'}</p>
-
-          <div style={{ marginTop: '12px', fontSize: '1.9rem', letterSpacing: '12px' }}>
-            <span className="pump">🎃</span><span className="pump" style={{ animationDelay: '1s' }}>🎃</span><span className="pump" style={{ animationDelay: '2s' }}>🎃</span>
-          </div>
-
-          {!isAdmin && <div><button onClick={() => setShowLogin(true)} style={{ marginTop: '10px', padding: '5px 14px', backgroundColor: 'transparent', color: '#4a3a2a', border: '1px solid #2a2015', borderRadius: '20px', cursor: 'pointer', fontSize: '0.75rem' }}>Admin</button></div>}
-          {isAdmin && <div><button onClick={() => setShowPanel(true)} style={{ ...orgBtn, marginTop: '12px', padding: '10px 25px' }}>📝 Story Add/Manage Karo</button></div>}
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', paddingTop: '18px' }}>
-          <button onClick={() => setLang('hindi')} style={{ padding: '8px 26px', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.95rem', backgroundColor: lang === 'hindi' ? '#ff6600' : '#14141a', color: lang === 'hindi' ? '#fff' : '#777', border: lang === 'hindi' ? 'none' : '1px solid #2a2a35' }}>हिंदी</button>
-          <button onClick={() => setLang('english')} style={{ padding: '8px 26px', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.95rem', backgroundColor: lang === 'english' ? '#ff6600' : '#14141a', color: lang === 'english' ? '#fff' : '#777', border: lang === 'english' ? 'none' : '1px solid #2a2a35' }}>English</button>
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', padding: '15px 15px 5px', maxWidth: '500px', margin: '0 auto' }}>
-          <div onClick={() => setTab('audio')} style={{ flex: 1, textAlign: 'center', padding: '18px 10px', borderRadius: '16px', cursor: 'pointer', background: tab === 'audio' ? 'linear-gradient(145deg, #8a3d00, #4d2200)' : '#14141a', border: tab === 'audio' ? '2px solid #ff6600' : '2px solid #26262e', boxShadow: tab === 'audio' ? '0 0 22px rgba(255,102,0,0.4)' : 'none' }}>
-            <div style={{ fontSize: '2.3rem' }}>🔊</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 'bold', marginTop: '6px', color: tab === 'audio' ? '#fff' : '#777' }}>{isEng ? 'Listen' : 'सुनो'}</div>
-            <div style={{ fontSize: '0.75rem', color: tab === 'audio' ? '#ffcc99' : '#4a4a55', marginTop: '3px' }}>{isEng ? 'Audio Stories' : 'ऑडियो कहानियाँ'}</div>
-          </div>
-          <div onClick={() => setTab('text')} style={{ flex: 1, textAlign: 'center', padding: '18px 10px', borderRadius: '16px', cursor: 'pointer', background: tab === 'text' ? 'linear-gradient(145deg, #8a3d00, #4d2200)' : '#14141a', border: tab === 'text' ? '2px solid #ff6600' : '2px solid #26262e', boxShadow: tab === 'text' ? '0 0 22px rgba(255,102,0,0.4)' : 'none' }}>
-            <div style={{ fontSize: '2.3rem' }}>📖</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 'bold', marginTop: '6px', color: tab === 'text' ? '#fff' : '#777' }}>{isEng ? 'Read' : 'पढ़ो'}</div>
-            <div style={{ fontSize: '0.75rem', color: tab === 'text' ? '#ffcc99' : '#4a4a55', marginTop: '3px' }}>{isEng ? 'Written Stories' : 'लिखी कहानियाँ'}</div>
+        {/* ===== NETFLIX-STYLE NAVBAR ===== */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', position: 'sticky', top: 0, zIndex: 50, background: 'linear-gradient(180deg, rgba(10,10,16,0.98), rgba(10,10,16,0.85))', backdropFilter: 'blur(8px)', borderBottom: '1px solid #1a1a22' }}>
+          <h1 className="sayaTitle" style={{ fontSize: '1.9rem', color: '#ff6600', margin: 0, letterSpacing: '3px', fontFamily: 'Georgia, serif' }}>साया 👻</h1>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button onClick={() => setLang('hindi')} style={{ padding: '6px 14px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: lang === 'hindi' ? '#ff6600' : 'transparent', color: lang === 'hindi' ? '#fff' : '#888', border: lang === 'hindi' ? 'none' : '1px solid #2a2a35' }}>हिंदी</button>
+            <button onClick={() => setLang('english')} style={{ padding: '6px 14px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: lang === 'english' ? '#ff6600' : 'transparent', color: lang === 'english' ? '#fff' : '#888', border: lang === 'english' ? 'none' : '1px solid #2a2a35' }}>Eng</button>
+            {!isAdmin && <button onClick={() => setShowLogin(true)} style={{ padding: '6px 10px', backgroundColor: 'transparent', color: '#3a3a45', border: '1px solid #1e1e28', borderRadius: '18px', cursor: 'pointer', fontSize: '0.7rem' }}>Admin</button>}
+            {isAdmin && <button onClick={() => setShowPanel(true)} style={{ ...orgBtn, padding: '7px 14px', fontSize: '0.8rem' }}>📝 Add</button>}
           </div>
         </div>
 
-        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '15px' }}>
-          {loading && <p style={{ color: '#888', textAlign: 'center', padding: '40px' }}>Loading... 🎃</p>}
-          {!loading && showList.length === 0 && <p style={{ color: '#666', textAlign: 'center', padding: '40px' }}>{isEng ? 'No stories here yet...' : (tab === 'audio' ? '🔊 अभी कोई ऑडियो कहानी नहीं...' : '📖 अभी कोई लिखी कहानी नहीं...')}</p>}
+        <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 14px' }}>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '15px' }}>
-            {showList.map((story) => (
-              <div key={story.id} onClick={() => openStory(story)} style={{ backgroundColor: '#14141a', borderRadius: '12px', overflow: 'hidden', border: '1px solid #2a2a35', cursor: 'pointer', position: 'relative' }}>
-                {story.poster ? (
-                  <div style={{ position: 'relative' }}>
-                    <img src={story.poster} alt={story.title} style={{ width: '100%', height: '220px', objectFit: 'cover', display: 'block' }} />
-                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', padding: '30px 10px 8px' }}>
-                      <h3 style={{ color: '#fff', margin: 0, fontSize: '0.95rem', textShadow: '1px 1px 4px #000' }}>{story.title}</h3>
-                      <p style={{ color: '#ffaa55', margin: '4px 0 0', fontSize: '0.72rem' }}>👁️ {formatViews(story.views)}{story.fearCount ? ' • 😱 ' + fearPct(story) + '%' : ''}</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ height: '220px', background: 'linear-gradient(135deg, #1a1005, #33200a)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '10px' }}>
-                    <span style={{ fontSize: '3rem' }}>{story.audio ? '🔊' : '🎃'}</span>
-                    <h3 style={{ color: '#fff', margin: '10px 0 0', fontSize: '0.95rem', textAlign: 'center' }}>{story.title}</h3>
-                    <p style={{ color: '#ffaa55', margin: '4px 0 0', fontSize: '0.72rem' }}>👁️ {formatViews(story.views)}{story.fearCount ? ' • 😱 ' + fearPct(story) + '%' : ''}</p>
-                  </div>
-                )}
-                {story.price > 0 && !isUnlocked(story) && <span style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: 'rgba(255,102,0,0.95)', color: '#fff', borderRadius: '20px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 'bold' }}>🔒 ₹{story.price}</span>}
-                {story.price > 0 && isUnlocked(story) && !isAdmin && <span style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: 'rgba(0,170,0,0.9)', color: '#fff', borderRadius: '20px', padding: '4px 10px', fontSize: '0.75rem' }}>✅</span>}
-                {isAdmin && (
-                  <div style={{ position: 'absolute', bottom: '8px', right: '8px', display: 'flex', gap: '6px' }}>
-                    <button onClick={(e) => { e.stopPropagation(); startEdit(story); }} style={{ backgroundColor: 'rgba(255,170,0,0.9)', color: '#000', border: 'none', borderRadius: '50%', width: '34px', height: '34px', cursor: 'pointer' }}>✏️</button>
-                    <button onClick={(e) => { e.stopPropagation(); removeStory(story.id); }} style={{ backgroundColor: 'rgba(0,0,0,0.7)', color: '#ff4444', border: 'none', borderRadius: '50%', width: '34px', height: '34px', cursor: 'pointer' }}>🗑️</button>
-                  </div>
-                )}
+          {/* ===== HERO BANNER SLIDER ===== */}
+          {hero && (
+            <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', marginTop: '15px', border: '1px solid #2a2a35', cursor: 'pointer' }} onClick={() => openStory(hero)}>
+              <img key={hero.id} src={hero.poster} alt={hero.title} className="heroImg" style={{ width: '100%', height: '46vw', maxHeight: '400px', minHeight: '220px', objectFit: 'cover', display: 'block' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(10,10,16,0.15) 30%, rgba(10,10,16,0.75) 75%, #0a0a10 100%)' }}></div>
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px' }}>
+                {isNew(hero) && <span style={{ backgroundColor: '#e50914', color: '#fff', borderRadius: '4px', padding: '3px 9px', fontSize: '0.7rem', fontWeight: 'bold' }}>NEW</span>}
+                <h2 style={{ color: '#fff', margin: '8px 0 4px', fontSize: '1.7rem', fontFamily: 'Georgia, serif', textShadow: '2px 2px 10px #000' }}>{hero.title}</h2>
+                <p style={{ color: '#ffaa55', margin: '0 0 12px', fontSize: '0.85rem' }}>👁️ {formatViews(hero.views)} {isEng ? 'views' : 'बार देखी गई'}{hero.fearCount ? ' • 😱 ' + fearPct(hero) + '%' : ''}{hero.price > 0 && !isUnlocked(hero) ? ' • 🔒 ₹' + hero.price : ''}</p>
+                <button style={{ ...orgBtn, padding: '11px 30px', fontSize: '1rem', boxShadow: '0 0 20px rgba(255,102,0,0.5)' }}>{hero.audio ? '▶ ' + (isEng ? 'Listen Now' : 'अभी सुनो') : '📖 ' + (isEng ? 'Read Now' : 'अभी पढ़ो')}</button>
               </div>
-            ))}
-          </div>
-          <p style={{ textAlign: 'center', color: '#3a2a1a', padding: '30px 0', fontSize: '0.8rem' }}>© साया - खौफ़ की हिंदी कहानियाँ 🎃</p>
+              <div style={{ position: 'absolute', bottom: '12px', right: '15px', display: 'flex', gap: '6px' }}>
+                {heroList.map((_, i) => (
+                  <div key={i} style={{ width: i === heroIdx % heroList.length ? '20px' : '8px', height: '8px', borderRadius: '4px', backgroundColor: i === heroIdx % heroList.length ? '#ff6600' : 'rgba(255,255,255,0.35)', transition: 'all 0.3s' }}></div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ===== SKELETON LOADING ===== */}
+          {loading && (
+            <>
+              <div className="skel" style={{ width: '100%', height: '250px', marginTop: '15px' }}></div>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '20px', overflow: 'hidden' }}>
+                {[1, 2, 3, 4, 5].map(i => <div key={i} className="skel" style={{ minWidth: '140px', height: '190px' }}></div>)}
+              </div>
+            </>
+          )}
+
+          {/* ===== TRENDING ROW ===== */}
+          {!loading && trending.length > 0 && (
+            <div style={{ marginTop: '25px' }}>
+              <h2 style={{ color: '#fff', fontSize: '1.2rem', margin: '0 0 2px' }}>🔥 {isEng ? 'Most Watched' : 'सबसे ज़्यादा देखी गई'}</h2>
+              <div className="row">
+                {trending.map((story, i) => (
+                  <div key={story.id} style={{ display: 'flex', alignItems: 'flex-end', flexShrink: 0 }}>
+                    <span className="rankNum" style={{ marginRight: '-18px', zIndex: 1 }}>{i + 1}</span>
+                    {posterCard(story, '130px')}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ===== NEW STORIES ROW ===== */}
+          {!loading && newest.length > 0 && (
+            <div style={{ marginTop: '10px' }}>
+              <h2 style={{ color: '#fff', fontSize: '1.2rem', margin: '0 0 2px' }}>🆕 {isEng ? 'New Stories' : 'नई कहानियाँ'}</h2>
+              <div className="row">
+                {newest.map(story => posterCard(story, '140px'))}
+              </div>
+            </div>
+          )}
+
+          {/* ===== TABS + FULL GRID ===== */}
+          {!loading && (
+            <div style={{ marginTop: '10px' }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '5px' }}>
+                <h2 style={{ color: '#fff', fontSize: '1.2rem', margin: 0 }}>{isEng ? 'All Stories' : 'सभी कहानियाँ'}</h2>
+                <button onClick={() => setTab('audio')} style={{ padding: '6px 16px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: tab === 'audio' ? '#ff6600' : '#14141a', color: tab === 'audio' ? '#fff' : '#888', border: tab === 'audio' ? 'none' : '1px solid #2a2a35' }}>🔊 {isEng ? 'Listen' : 'सुनो'}</button>
+                <button onClick={() => setTab('text')} style={{ padding: '6px 16px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: tab === 'text' ? '#ff6600' : '#14141a', color: tab === 'text' ? '#fff' : '#888', border: tab === 'text' ? 'none' : '1px solid #2a2a35' }}>📖 {isEng ? 'Read' : 'पढ़ो'}</button>
+              </div>
+
+              {showList.length === 0 && <p style={{ color: '#666', textAlign: 'center', padding: '30px' }}>{isEng ? 'No stories here yet...' : 'अभी कोई कहानी नहीं...'}</p>}
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '14px', paddingTop: '10px' }}>
+                {showList.map((story) => (
+                  <div key={story.id} onClick={() => openStory(story)} className="card" style={{ backgroundColor: '#14141a', borderRadius: '12px', overflow: 'hidden', border: '1px solid #2a2a35', cursor: 'pointer', position: 'relative' }}>
+                    {story.poster ? (
+                      <div style={{ position: 'relative' }}>
+                        <img src={story.poster} alt={story.title} style={{ width: '100%', height: '210px', objectFit: 'cover', display: 'block' }} />
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', padding: '28px 9px 7px' }}>
+                          <h3 style={{ color: '#fff', margin: 0, fontSize: '0.9rem', textShadow: '1px 1px 4px #000' }}>{story.title}</h3>
+                          <p style={{ color: '#ffaa55', margin: '3px 0 0', fontSize: '0.7rem' }}>👁️ {formatViews(story.views)}{story.fearCount ? ' • 😱 ' + fearPct(story) + '%' : ''}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ height: '210px', background: 'linear-gradient(135deg, #1a1005, #33200a)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '10px' }}>
+                        <span style={{ fontSize: '2.8rem' }}>{story.audio ? '🔊' : '🎃'}</span>
+                        <h3 style={{ color: '#fff', margin: '10px 0 0', fontSize: '0.9rem', textAlign: 'center' }}>{story.title}</h3>
+                        <p style={{ color: '#ffaa55', margin: '4px 0 0', fontSize: '0.7rem' }}>👁️ {formatViews(story.views)}</p>
+                      </div>
+                    )}
+                    {isNew(story) && <span className="newBadge" style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#e50914', color: '#fff', borderRadius: '4px', padding: '2px 7px', fontSize: '0.65rem', fontWeight: 'bold' }}>NEW</span>}
+                    {story.price > 0 && !isUnlocked(story) && <span style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: 'rgba(255,102,0,0.95)', color: '#fff', borderRadius: '20px', padding: '3px 9px', fontSize: '0.7rem', fontWeight: 'bold' }}>🔒 ₹{story.price}</span>}
+                    {story.price > 0 && isUnlocked(story) && !isAdmin && <span style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: 'rgba(0,170,0,0.9)', color: '#fff', borderRadius: '20px', padding: '3px 9px', fontSize: '0.7rem' }}>✅</span>}
+                    {isAdmin && (
+                      <div style={{ position: 'absolute', bottom: '8px', right: '8px', display: 'flex', gap: '6px' }}>
+                        <button onClick={(e) => { e.stopPropagation(); startEdit(story); }} style={{ backgroundColor: 'rgba(255,170,0,0.9)', color: '#000', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer' }}>✏️</button>
+                        <button onClick={(e) => { e.stopPropagation(); removeStory(story.id); }} style={{ backgroundColor: 'rgba(0,0,0,0.7)', color: '#ff4444', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer' }}>🗑️</button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <p style={{ textAlign: 'center', color: '#3a2a1a', padding: '30px 0', fontSize: '0.8rem' }}>© साया - खौफ़ की हिंदी कहानियाँ 🎃 • "डर सिर्फ एक कहानी की दूरी पर है..."</p>
         </div>
       </div>
 
       {!blurBg && (
         <>
-          <button onClick={() => { setShowWheel(true); setWheelMsg(''); }} className="wobble" style={{ position: 'fixed', bottom: '20px', left: '15px', zIndex: 90, backgroundColor: '#1a1410', border: '2px solid #ff6600', borderRadius: '50%', width: '58px', height: '58px', fontSize: '1.7rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,102,0,0.4)' }}>🎰</button>
-          <button onClick={toggleAmb} style={{ position: 'fixed', bottom: '20px', right: '15px', zIndex: 90, backgroundColor: ambOn ? '#ff6600' : '#1a1410', border: '2px solid #ff6600', borderRadius: '50%', width: '58px', height: '58px', fontSize: '1.5rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,102,0,0.4)' }}>{ambOn ? '🔊' : '🔇'}</button>
+          <button onClick={() => { setShowWheel(true); setWheelMsg(''); }} className="wobble" style={{ position: 'fixed', bottom: '20px', left: '15px', zIndex: 90, backgroundColor: '#1a1410', border: '2px solid #ff6600', borderRadius: '50%', width: '56px', height: '56px', fontSize: '1.6rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,102,0,0.4)' }}>🎰</button>
+          <button onClick={toggleAmb} style={{ position: 'fixed', bottom: '20px', right: '15px', zIndex: 90, backgroundColor: ambOn ? '#ff6600' : '#1a1410', border: '2px solid #ff6600', borderRadius: '50%', width: '56px', height: '56px', fontSize: '1.4rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,102,0,0.4)' }}>{ambOn ? '🔊' : '🔇'}</button>
         </>
       )}
 
@@ -487,15 +550,12 @@ export default function Home() {
                 <div style={{ textAlign: 'center', padding: '15px 10px' }}>
                   <div style={{ fontSize: '3.5rem' }}>🔒</div>
                   <h2 style={{ color: '#ff8822', margin: '10px 0' }}>यह प्रीमियम कहानी है</h2>
-
                   <div style={{ backgroundColor: 'rgba(255,102,0,0.12)', border: '1px dashed #ff6600', borderRadius: '10px', padding: '10px', margin: '10px auto', maxWidth: '320px' }}>
                     <p style={{ color: '#ffaa55', margin: 0, fontSize: '0.9rem', fontWeight: 'bold' }}>⚡ आज का ऑफर खत्म होने में:</p>
                     <p style={{ color: '#ff4444', margin: '5px 0 0', fontSize: '1.3rem', fontWeight: 'bold', fontFamily: 'monospace' }}>{offerLeft}</p>
                     <p style={{ color: '#c9a97a', margin: '5px 0 0', fontSize: '1rem' }}><s style={{ color: '#777' }}>₹{readingStory.price * 2}</s> <span style={{ color: '#00cc44', fontWeight: 'bold', fontSize: '1.2rem' }}>₹{readingStory.price}</span></p>
                   </div>
-
                   <button onClick={() => payStory(readingStory)} style={{ ...orgBtn, padding: '16px 40px', fontSize: '1.15rem', marginTop: '5px', boxShadow: '0 0 25px rgba(255,102,0,0.4)' }}>💳 ₹{readingStory.price} देकर अनलॉक करो</button>
-
                   <p style={{ color: '#666', margin: '15px 0 8px' }}>—— या ——</p>
                   <button onClick={() => shareUnlock(readingStory)} style={{ padding: '13px 28px', backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.95rem' }}>🎁 5 दोस्तों को Share करो, FREE पाओ ({sharesCnt[readingStory.id] || 0}/5)</button>
                   <p style={{ color: '#8a6a4a', fontSize: '0.75rem', marginTop: '8px' }}>WhatsApp par 5 baar share karo aur kahani free unlock!</p>
