@@ -57,6 +57,8 @@ export default function Home() {
   const [fearVotes, setFearVotes] = useState({});
   const [sharesCnt, setSharesCnt] = useState({});
   const [heroIdx, setHeroIdx] = useState(0);
+  const [installEvt, setInstallEvt] = useState(null);
+  const [showIosGuide, setShowIosGuide] = useState(false);
   const audioRef = useRef(null);
   const ambRef = useRef(null);
 
@@ -71,6 +73,7 @@ export default function Home() {
     const s = document.createElement('script');
     s.src = 'https://checkout.razorpay.com/v1/checkout.js';
     document.body.appendChild(s);
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); setInstallEvt(e); });
     const t = setInterval(() => {
       const now = new Date();
       const end = new Date(); end.setHours(23, 59, 59, 999);
@@ -81,6 +84,17 @@ export default function Home() {
     const ht = setInterval(() => setHeroIdx(i => i + 1), 4000);
     return () => { clearInterval(t); clearInterval(ht); };
   }, []);
+
+  const installApp = () => {
+    const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    if (isIos) { setShowIosGuide(true); return; }
+    if (installEvt) {
+      installEvt.prompt();
+      installEvt.userChoice.then(() => setInstallEvt(null));
+    } else {
+      alert('App pehle se installed hai, ya browser ke menu (⋮) mein "Install app" / "Add to Home screen" dabao!');
+    }
+  };
 
   const toggleTheme = () => {
     const nt = theme === 'dark' ? 'light' : 'dark';
@@ -343,7 +357,7 @@ export default function Home() {
   const hero = heroList.length ? heroList[heroIdx % heroList.length] : null;
   const trending = [...langStories].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
   const newest = langStories.slice(0, 8);
-  const blurBg = showLogin || (showPanel && isAdmin) || readingStory || showWheel;
+  const blurBg = showLogin || (showPanel && isAdmin) || readingStory || showWheel || showIosGuide;
   const isEng = lang === 'english';
 
   const css = `
@@ -530,7 +544,24 @@ export default function Home() {
         <>
           <button onClick={() => { setShowWheel(true); setWheelMsg(''); }} className="wobble" style={{ position: 'fixed', bottom: '20px', left: '15px', zIndex: 90, backgroundColor: dk ? '#1a1410' : '#fff', border: '2px solid #ff6600', borderRadius: '50%', width: '56px', height: '56px', fontSize: '1.6rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,102,0,0.4)' }}>🎰</button>
           <button onClick={toggleAmb} style={{ position: 'fixed', bottom: '20px', right: '15px', zIndex: 90, backgroundColor: ambOn ? '#ff6600' : (dk ? '#1a1410' : '#fff'), border: '2px solid #ff6600', borderRadius: '50%', width: '56px', height: '56px', fontSize: '1.4rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,102,0,0.4)' }}>{ambOn ? '🔊' : '🔇'}</button>
+          <button onClick={installApp} style={{ position: 'fixed', bottom: '85px', right: '15px', zIndex: 90, backgroundColor: '#ff6600', color: '#fff', border: 'none', borderRadius: '25px', padding: '12px 18px', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,102,0,0.6)' }}>📲 App Install करो</button>
         </>
+      )}
+
+      {showIosGuide && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 130, padding: '20px' }} onClick={() => setShowIosGuide(false)}>
+          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#1a1410', padding: '25px', borderRadius: '16px', border: '2px solid #ff6600', maxWidth: '340px', textAlign: 'center' }}>
+            <h2 style={{ color: '#ff8822', marginTop: 0 }}>📲 iPhone में Install करो</h2>
+            <div style={{ textAlign: 'left', color: '#e8d5b8', fontSize: '0.95rem', lineHeight: '2' }}>
+              <p>1️⃣ नीचे <b>Share बटन</b> दबाओ (⬆️ वाला box)</p>
+              <p>2️⃣ नीचे scroll करो</p>
+              <p>3️⃣ <b>"Add to Home Screen"</b> दबाओ</p>
+              <p>4️⃣ <b>"Add"</b> दबाओ — हो गया! 🎉</p>
+            </div>
+            <p style={{ color: '#8a6a4a', fontSize: '0.8rem' }}>⚠️ Safari browser में ही चलेगा!</p>
+            <button onClick={() => setShowIosGuide(false)} style={{ ...orgBtn, padding: '10px 30px' }}>समझ गया ✅</button>
+          </div>
+        </div>
       )}
 
       {showWheel && (
