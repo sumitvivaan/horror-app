@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { db, auth } from '../lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, orderBy, query } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, orderBy, query, increment } from 'firebase/firestore';
 
 const ADMIN_EMAIL = "vivaan2024koshiya@gmail.com";
 const CLOUD_NAME = "wlse6ksh";
@@ -16,6 +16,13 @@ function formatTime(sec) {
   return m + ":" + (s < 10 ? "0" : "") + s;
 }
 
+function formatViews(n) {
+  if (!n) return "0";
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + "M";
+  if (n >= 1000) return (n / 1000).toFixed(1) + "K";
+  return String(n);
+}
+
 export default function Home() {
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,9 +34,11 @@ export default function Home() {
   const [poster, setPoster] = useState('');
   const [audio, setAudio] = useState('');
   const [price, setPrice] = useState('0');
+  const [storyLang, setStoryLang] = useState('hindi');
   const [editId, setEditId] = useState(null);
   const [uploading, setUploading] = useState('');
   const [tab, setTab] = useState('audio');
+  const [lang, setLang] = useState('hindi');
   const [readingStory, setReadingStory] = useState(null);
   const [playing, setPlaying] = useState(false);
   const [curTime, setCurTime] = useState(0);
@@ -57,6 +66,14 @@ export default function Home() {
     setLoading(false);
   };
 
+  const openStory = (story) => {
+    setReadingStory(story);
+    try {
+      updateDoc(doc(db, "stories", story.id), { views: increment(1) });
+      setStories(prev => prev.map(s => s.id === story.id ? { ...s, views: (s.views || 0) + 1 } : s));
+    } catch (e) {}
+  };
+
   const handleLogin = async () => {
     try {
       const res = await signInWithPopup(auth, new GoogleAuthProvider());
@@ -70,7 +87,7 @@ export default function Home() {
     } catch (e) { alert('Login error: ' + e.message); }
   };
 
-  const clearForm = () => { setTitle(''); setText(''); setPoster(''); setAudio(''); setPrice('0'); setEditId(null); };
+  const clearForm = () => { setTitle(''); setText(''); setPoster(''); setAudio(''); setPrice('0'); setStoryLang('hindi'); setEditId(null); };
 
   const uploadFile = async (file, kind) => {
     setUploading(kind);
@@ -93,10 +110,10 @@ export default function Home() {
     if (!text && !audio) return alert('Story Text ya Audio - kuch toh dalo!');
     try {
       if (editId) {
-        await updateDoc(doc(db, "stories", editId), { title, text: text || '', poster: poster || '', audio: audio || '', price: parseInt(price) || 0 });
+        await updateDoc(doc(db, "stories", editId), { title, text: text || '', poster: poster || '', audio: audio || '', price: parseInt(price) || 0, lang: storyLang });
         alert('Update ho gayi! ✏️');
       } else {
-        await addDoc(collection(db, "stories"), { title, text: text || '', poster: poster || '', audio: audio || '', price: parseInt(price) || 0, createdAt: Date.now(), date: new Date().toLocaleDateString('hi-IN') });
+        await addDoc(collection(db, "stories"), { title, text: text || '', poster: poster || '', audio: audio || '', price: parseInt(price) || 0, lang: storyLang, views: 0, createdAt: Date.now(), date: new Date().toLocaleDateString('hi-IN') });
         alert('Publish ho gayi! 🎃');
       }
       clearForm(); loadStories();
@@ -106,6 +123,7 @@ export default function Home() {
   const startEdit = (story) => {
     setEditId(story.id); setTitle(story.title || ''); setText(story.text || '');
     setPoster(story.poster || ''); setAudio(story.audio || ''); setPrice(String(story.price || 0));
+    setStoryLang(story.lang || 'hindi');
     setShowPanel(true);
   };
 
@@ -177,10 +195,12 @@ export default function Home() {
   const inputStyle = { width: '100%', padding: '12px', marginBottom: '12px', backgroundColor: '#0a0a0a', color: 'white', border: '1px solid #444', borderRadius: '8px', boxSizing: 'border-box', fontSize: '1rem' };
   const orgBtn = { backgroundColor: '#ff6600', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' };
 
-  const audioStories = stories.filter(s => s.audio);
-  const textStories = stories.filter(s => s.text);
+  const langStories = stories.filter(s => (s.lang || 'hindi') === lang);
+  const audioStories = langStories.filter(s => s.audio);
+  const textStories = langStories.filter(s => s.text);
   const showList = tab === 'audio' ? audioStories : textStories;
   const blurBg = showLogin || (showPanel && isAdmin) || readingStory;
+  const isEng = lang === 'english';
 
   const css = `
     @keyframes bounce1 { 0%,100%{height:8px} 50%{height:26px} }
@@ -229,8 +249,8 @@ export default function Home() {
           <div style={{ position: 'absolute', bottom: '55px', right: '-15px', fontSize: '4.5rem', filter: 'brightness(0.2)' }}>🌳</div>
 
           <h1 className="sayaTitle" style={{ fontSize: '3.6rem', color: '#ff6600', margin: '18px 0 0', letterSpacing: '6px', fontFamily: 'Georgia, serif' }}>साया</h1>
-          <p style={{ color: '#ffaa55', marginTop: '4px', fontSize: '1.15rem', letterSpacing: '2px' }}>खौफ़ की हिंदी कहानियाँ</p>
-          <p style={{ color: '#8a6a4a', marginTop: '5px', fontSize: '0.85rem', fontStyle: 'italic' }}>"डर सिर्फ एक कहानी की दूरी पर है..."</p>
+          <p style={{ color: '#ffaa55', marginTop: '4px', fontSize: '1.15rem', letterSpacing: '2px' }}>{isEng ? 'Horror Stories in English' : 'खौफ़ की हिंदी कहानियाँ'}</p>
+          <p style={{ color: '#8a6a4a', marginTop: '5px', fontSize: '0.85rem', fontStyle: 'italic' }}>{isEng ? '"Fear is just one story away..."' : '"डर सिर्फ एक कहानी की दूरी पर है..."'}</p>
 
           <div style={{ marginTop: '12px', fontSize: '1.9rem', letterSpacing: '12px' }}>
             <span className="pump">🎃</span><span className="pump" style={{ animationDelay: '1s' }}>🎃</span><span className="pump" style={{ animationDelay: '2s' }}>🎃</span>
@@ -240,37 +260,45 @@ export default function Home() {
           {isAdmin && <div><button onClick={() => setShowPanel(true)} style={{ ...orgBtn, marginTop: '12px', padding: '10px 25px' }}>📝 Story Add/Manage Karo</button></div>}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', padding: '18px 15px 5px', maxWidth: '500px', margin: '0 auto' }}>
+        {/* ===== LANGUAGE TOGGLE ===== */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', paddingTop: '18px' }}>
+          <button onClick={() => setLang('hindi')} style={{ padding: '8px 26px', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.95rem', backgroundColor: lang === 'hindi' ? '#ff6600' : '#14141a', color: lang === 'hindi' ? '#fff' : '#777', border: lang === 'hindi' ? 'none' : '1px solid #2a2a35' }}>हिंदी</button>
+          <button onClick={() => setLang('english')} style={{ padding: '8px 26px', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.95rem', backgroundColor: lang === 'english' ? '#ff6600' : '#14141a', color: lang === 'english' ? '#fff' : '#777', border: lang === 'english' ? 'none' : '1px solid #2a2a35' }}>English</button>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', padding: '15px 15px 5px', maxWidth: '500px', margin: '0 auto' }}>
           <div onClick={() => setTab('audio')} style={{ flex: 1, textAlign: 'center', padding: '18px 10px', borderRadius: '16px', cursor: 'pointer', background: tab === 'audio' ? 'linear-gradient(145deg, #8a3d00, #4d2200)' : '#14141a', border: tab === 'audio' ? '2px solid #ff6600' : '2px solid #26262e', boxShadow: tab === 'audio' ? '0 0 22px rgba(255,102,0,0.4)' : 'none' }}>
             <div style={{ fontSize: '2.3rem' }}>🔊</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 'bold', marginTop: '6px', color: tab === 'audio' ? '#fff' : '#777' }}>सुनो</div>
-            <div style={{ fontSize: '0.75rem', color: tab === 'audio' ? '#ffcc99' : '#4a4a55', marginTop: '3px' }}>ऑडियो कहानियाँ</div>
+            <div style={{ fontSize: '1.15rem', fontWeight: 'bold', marginTop: '6px', color: tab === 'audio' ? '#fff' : '#777' }}>{isEng ? 'Listen' : 'सुनो'}</div>
+            <div style={{ fontSize: '0.75rem', color: tab === 'audio' ? '#ffcc99' : '#4a4a55', marginTop: '3px' }}>{isEng ? 'Audio Stories' : 'ऑडियो कहानियाँ'}</div>
           </div>
           <div onClick={() => setTab('text')} style={{ flex: 1, textAlign: 'center', padding: '18px 10px', borderRadius: '16px', cursor: 'pointer', background: tab === 'text' ? 'linear-gradient(145deg, #8a3d00, #4d2200)' : '#14141a', border: tab === 'text' ? '2px solid #ff6600' : '2px solid #26262e', boxShadow: tab === 'text' ? '0 0 22px rgba(255,102,0,0.4)' : 'none' }}>
             <div style={{ fontSize: '2.3rem' }}>📖</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 'bold', marginTop: '6px', color: tab === 'text' ? '#fff' : '#777' }}>पढ़ो</div>
-            <div style={{ fontSize: '0.75rem', color: tab === 'text' ? '#ffcc99' : '#4a4a55', marginTop: '3px' }}>लिखी कहानियाँ</div>
+            <div style={{ fontSize: '1.15rem', fontWeight: 'bold', marginTop: '6px', color: tab === 'text' ? '#fff' : '#777' }}>{isEng ? 'Read' : 'पढ़ो'}</div>
+            <div style={{ fontSize: '0.75rem', color: tab === 'text' ? '#ffcc99' : '#4a4a55', marginTop: '3px' }}>{isEng ? 'Written Stories' : 'लिखी कहानियाँ'}</div>
           </div>
         </div>
 
         <div style={{ maxWidth: '800px', margin: '0 auto', padding: '15px' }}>
           {loading && <p style={{ color: '#888', textAlign: 'center', padding: '40px' }}>Loading... 🎃</p>}
-          {!loading && showList.length === 0 && <p style={{ color: '#666', textAlign: 'center', padding: '40px' }}>{tab === 'audio' ? '🔊 अभी कोई ऑडियो कहानी नहीं...' : '📖 अभी कोई लिखी कहानी नहीं...'}</p>}
+          {!loading && showList.length === 0 && <p style={{ color: '#666', textAlign: 'center', padding: '40px' }}>{isEng ? 'No stories here yet...' : (tab === 'audio' ? '🔊 अभी कोई ऑडियो कहानी नहीं...' : '📖 अभी कोई लिखी कहानी नहीं...')}</p>}
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '15px' }}>
             {showList.map((story) => (
-              <div key={story.id} onClick={() => setReadingStory(story)} style={{ backgroundColor: '#14141a', borderRadius: '12px', overflow: 'hidden', border: '1px solid #2a2a35', cursor: 'pointer', position: 'relative' }}>
+              <div key={story.id} onClick={() => openStory(story)} style={{ backgroundColor: '#14141a', borderRadius: '12px', overflow: 'hidden', border: '1px solid #2a2a35', cursor: 'pointer', position: 'relative' }}>
                 {story.poster ? (
                   <div style={{ position: 'relative' }}>
                     <img src={story.poster} alt={story.title} style={{ width: '100%', height: '220px', objectFit: 'cover', display: 'block' }} />
                     <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', padding: '30px 10px 8px' }}>
                       <h3 style={{ color: '#fff', margin: 0, fontSize: '0.95rem', textShadow: '1px 1px 4px #000' }}>{story.title}</h3>
+                      <p style={{ color: '#ffaa55', margin: '4px 0 0', fontSize: '0.75rem' }}>👁️ {formatViews(story.views)} {isEng ? 'views' : 'बार देखी गई'}</p>
                     </div>
                   </div>
                 ) : (
                   <div style={{ height: '220px', background: 'linear-gradient(135deg, #1a1005, #33200a)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '10px' }}>
                     <span style={{ fontSize: '3rem' }}>{story.audio ? '🔊' : '🎃'}</span>
                     <h3 style={{ color: '#fff', margin: '10px 0 0', fontSize: '0.95rem', textAlign: 'center' }}>{story.title}</h3>
+                    <p style={{ color: '#ffaa55', margin: '4px 0 0', fontSize: '0.75rem' }}>👁️ {formatViews(story.views)}</p>
                   </div>
                 )}
                 {story.price > 0 && !isUnlocked(story) && <span style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: 'rgba(255,102,0,0.95)', color: '#fff', borderRadius: '20px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 'bold' }}>🔒 ₹{story.price}</span>}
@@ -305,7 +333,8 @@ export default function Home() {
                   <img src={readingStory.poster} alt={readingStory.title} style={{ width: '100%', display: 'block', filter: isUnlocked(readingStory) ? 'none' : 'blur(6px)' }} />
                 </div>
               )}
-              <h1 style={{ color: '#ff8822', margin: '0 0 15px', fontSize: '1.6rem', textAlign: 'center', fontFamily: 'Georgia, serif', textShadow: '0 0 15px rgba(255,120,0,0.5)' }}>{readingStory.title}</h1>
+              <h1 style={{ color: '#ff8822', margin: '0 0 5px', fontSize: '1.6rem', textAlign: 'center', fontFamily: 'Georgia, serif', textShadow: '0 0 15px rgba(255,120,0,0.5)' }}>{readingStory.title}</h1>
+              <p style={{ color: '#8a6a4a', textAlign: 'center', margin: '0 0 15px', fontSize: '0.85rem' }}>👁️ {formatViews((readingStory.views || 0) + 1)} बार देखी गई</p>
 
               {!isUnlocked(readingStory) && (
                 <div style={{ textAlign: 'center', padding: '20px 10px' }}>
@@ -377,6 +406,13 @@ export default function Home() {
             </div>
             <div style={{ marginTop: '15px' }}>
               <input type="text" placeholder="Title (zaroori)" value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} />
+
+              <label style={{ color: '#ffaa55', fontSize: '0.85rem' }}>🌐 Language:</label>
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', marginTop: '5px' }}>
+                <button onClick={() => setStoryLang('hindi')} style={{ flex: 1, padding: '10px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', backgroundColor: storyLang === 'hindi' ? '#ff6600' : '#0a0a0a', color: storyLang === 'hindi' ? '#fff' : '#777', border: '1px solid #444' }}>हिंदी</button>
+                <button onClick={() => setStoryLang('english')} style={{ flex: 1, padding: '10px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', backgroundColor: storyLang === 'english' ? '#ff6600' : '#0a0a0a', color: storyLang === 'english' ? '#fff' : '#777', border: '1px solid #444' }}>English</button>
+              </div>
+
               <label style={{ color: '#ffaa55', fontSize: '0.85rem' }}>🖼️ Poster Upload Karo:</label>
               <input type="file" accept="image/*" onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0], 'poster')} style={{ ...inputStyle, padding: '8px' }} />
               {uploading === 'poster' && <p style={{ color: '#ffaa00', margin: '0 0 10px' }}>⏳ Poster upload ho raha hai...</p>}
