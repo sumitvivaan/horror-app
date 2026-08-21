@@ -8,7 +8,7 @@ const ADMIN_EMAIL = "vivaan2024koshiya@gmail.com";
 const CLOUD_NAME = "wlse6ksh";
 const UPLOAD_PRESET = "wlse6ksh";
 // ⬇️ LINE 11: RAZORPAY KEY ⬇️
-const RAZORPAY_KEY = "YAHAN_RAZORPAY_KEY_DALO";
+const RAZORPAY_KEY = "rzp_test_TSLL3jml0siRz4";
 const AMBIENCE_URL = "https://res.cloudinary.com/zyexm5wm/video/upload/v1787307374/simplesound-horror-trailer-443327.mp3";
 
 function formatTime(sec) {
