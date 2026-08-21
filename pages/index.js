@@ -8,7 +8,7 @@ const ADMIN_EMAIL = "vivaan2024koshiya@gmail.com";
 const CLOUD_NAME = "wlse6ksh";
 const UPLOAD_PRESET = "wlse6ksh";
 // ⬇️ LINE 11: APNI RAZORPAY KEY YAHAN DALO ⬇️
-const RAZORPAY_KEY = "YAHAN_RAZORPAY_KEY_DALO";
+const RAZORPAY_KEY = "rzp_test_TSLL3jml0siRz4";
 
 function formatTime(sec) {
   if (!sec || isNaN(sec)) return "0:00";
