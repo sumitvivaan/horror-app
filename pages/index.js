@@ -320,7 +320,6 @@ export default function Home() {
   const skip = (sec) => { if (audioRef.current) audioRef.current.currentTime += sec; };
   const onSeek = (e) => { const v = parseFloat(e.target.value); if (audioRef.current) audioRef.current.currentTime = v; setCurTime(v); };
 
-  // ===== THEME COLORS =====
   const dk = theme === 'dark';
   const C = {
     bg: dk ? '#0a0a10' : '#f4efe6',
@@ -380,6 +379,18 @@ export default function Home() {
     .frame .corner { position:absolute; font-size:1.1rem; opacity:0.9; }
     .skullBtn { background:none; border:none; font-size:1.7rem; cursor:pointer; filter:grayscale(1); transition: all 0.2s; }
     .rankNum { font-size:5.5rem; font-weight:900; color:transparent; -webkit-text-stroke: 2px #ff6600; font-family:sans-serif; line-height:1; opacity:0.85; }
+    @keyframes batFly { 0%{ left:-60px; top:15%; transform:scaleX(1);} 45%{ top:8%; } 50%{ left:105%; transform:scaleX(1);} 51%{ transform:scaleX(-1);} 95%{ top:20%; } 100%{ left:-60px; top:15%; transform:scaleX(-1);} }
+    .storyBat { position:fixed; font-size:1.8rem; z-index:101; pointer-events:none; animation: batFly 18s linear infinite; filter: drop-shadow(0 0 6px rgba(255,102,0,0.4)); }
+    @keyframes spiderDrop { 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(45px);} }
+    .spider { position:fixed; top:0; right:12%; z-index:101; pointer-events:none; animation: spiderDrop 6s ease-in-out infinite; text-align:center; font-size:1.2rem; }
+    .spider .thread { width:1px; height:60px; background:rgba(200,200,200,0.35); margin:0 auto; }
+    @keyframes fogMove { 0%{ transform:translateX(-25%);} 100%{ transform:translateX(25%);} }
+    .fog { position:fixed; bottom:-30px; left:-20%; width:140%; height:130px; z-index:101; pointer-events:none; background: radial-gradient(ellipse at center, rgba(150,150,170,0.13), transparent 70%); animation: fogMove 9s ease-in-out infinite alternate; }
+    @keyframes darkPulse { 0%,100%{ box-shadow: inset 0 0 120px rgba(0,0,0,0.85);} 50%{ box-shadow: inset 0 0 200px rgba(0,0,0,0.97);} }
+    .vignette { position:fixed; inset:0; z-index:99; pointer-events:none; animation: darkPulse 7s infinite; }
+    @keyframes eyesBlink { 0%,88%,100%{opacity:0} 90%,96%{opacity:0.8} }
+    .eyes { position:fixed; bottom:18%; left:6%; z-index:101; pointer-events:none; font-size:1rem; animation: eyesBlink 11s infinite; }
+    .eyes2 { left:auto; right:8%; bottom:30%; animation-delay:5s; }
   `;
 
   const posterCard = (story, w) => (
@@ -405,7 +416,6 @@ export default function Home() {
 
       <div style={{ filter: blurBg ? 'blur(8px)' : 'none', pointerEvents: blurBg ? 'none' : 'auto', transition: 'filter 0.3s' }}>
 
-        {/* ===== NAVBAR ===== */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', position: 'sticky', top: 0, zIndex: 50, background: C.nav, backdropFilter: 'blur(8px)', borderBottom: '1px solid ' + C.navBorder }}>
           <h1 className="sayaTitle" style={{ fontSize: '1.9rem', color: '#ff6600', margin: 0, letterSpacing: '3px', fontFamily: 'Georgia, serif' }}>साया 👻</h1>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -419,7 +429,6 @@ export default function Home() {
 
         <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 14px' }}>
 
-          {/* ===== HERO BANNER ===== */}
           {hero && (
             <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', marginTop: '15px', border: '1px solid ' + C.border, cursor: 'pointer' }} onClick={() => openStory(hero)}>
               <img key={hero.id} src={hero.poster} alt={hero.title} className="heroImg" style={{ width: '100%', height: '46vw', maxHeight: '400px', minHeight: '220px', objectFit: 'cover', display: 'block' }} />
@@ -544,7 +553,13 @@ export default function Home() {
 
       {readingStory && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(5,2,0,0.6)', zIndex: 100, overflowY: 'auto', padding: '15px' }}>
-          <div style={{ maxWidth: '650px', margin: '35px auto 30px' }}>
+          <div className="vignette"></div>
+          <span className="storyBat">🦇</span>
+          <div className="spider"><div className="thread"></div>🕷️</div>
+          <span className="eyes">👀</span>
+          <span className="eyes eyes2">👀</span>
+          <div className="fog"></div>
+          <div style={{ maxWidth: '650px', margin: '35px auto 30px', position: 'relative', zIndex: 102 }}>
             <div className="frame" style={{ padding: '35px 18px 25px' }}>
               <span className="corner" style={{ top: '6px', left: '8px' }}>🕸️</span>
               <span className="corner" style={{ top: '6px', right: '8px' }}>🕸️</span>
