@@ -42,6 +42,7 @@ export default function Home() {
   const [uploading, setUploading] = useState('');
   const [tab, setTab] = useState('audio');
   const [lang, setLang] = useState('hindi');
+  const [theme, setTheme] = useState('dark');
   const [readingStory, setReadingStory] = useState(null);
   const [playing, setPlaying] = useState(false);
   const [curTime, setCurTime] = useState(0);
@@ -65,6 +66,8 @@ export default function Home() {
     try { setUnlocked(JSON.parse(localStorage.getItem('unlocked') || '[]')); } catch (e) {}
     try { setFearVotes(JSON.parse(localStorage.getItem('fearVotes') || '{}')); } catch (e) {}
     try { setSharesCnt(JSON.parse(localStorage.getItem('sharesCnt') || '{}')); } catch (e) {}
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) setTheme(savedTheme);
     const s = document.createElement('script');
     s.src = 'https://checkout.razorpay.com/v1/checkout.js';
     document.body.appendChild(s);
@@ -78,6 +81,12 @@ export default function Home() {
     const ht = setInterval(() => setHeroIdx(i => i + 1), 4000);
     return () => { clearInterval(t); clearInterval(ht); };
   }, []);
+
+  const toggleTheme = () => {
+    const nt = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nt);
+    localStorage.setItem('theme', nt);
+  };
 
   const loadStories = async () => {
     try {
@@ -311,6 +320,19 @@ export default function Home() {
   const skip = (sec) => { if (audioRef.current) audioRef.current.currentTime += sec; };
   const onSeek = (e) => { const v = parseFloat(e.target.value); if (audioRef.current) audioRef.current.currentTime = v; setCurTime(v); };
 
+  // ===== THEME COLORS =====
+  const dk = theme === 'dark';
+  const C = {
+    bg: dk ? '#0a0a10' : '#f4efe6',
+    card: dk ? '#14141a' : '#fffaf2',
+    border: dk ? '#2a2a35' : '#e0d3bd',
+    text: dk ? '#fff' : '#221a10',
+    sub: dk ? '#888' : '#8a7a62',
+    nav: dk ? 'linear-gradient(180deg, rgba(10,10,16,0.98), rgba(10,10,16,0.85))' : 'linear-gradient(180deg, rgba(248,243,234,0.98), rgba(248,243,234,0.9))',
+    navBorder: dk ? '#1a1a22' : '#e5dac5',
+    footer: dk ? '#3a2a1a' : '#b5a58c'
+  };
+
   const inputStyle = { width: '100%', padding: '12px', marginBottom: '12px', backgroundColor: '#0a0a0a', color: 'white', border: '1px solid #444', borderRadius: '8px', boxSizing: 'border-box', fontSize: '1rem' };
   const orgBtn = { backgroundColor: '#ff6600', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' };
 
@@ -346,7 +368,7 @@ export default function Home() {
     .card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
     .card:hover { transform: scale(1.06); box-shadow: 0 6px 30px rgba(255,102,0,0.4); z-index:2; }
     .card:hover img { filter: brightness(1.1); }
-    .skel { background: linear-gradient(90deg,#14141a 25%,#20202a 50%,#14141a 75%); background-size:800px 100%; animation: shimmer 1.3s infinite; border-radius:12px; }
+    .skel { background: linear-gradient(90deg,${dk ? '#14141a 25%,#20202a 50%,#14141a' : '#e8e0d0 25%,#f5efe3 50%,#e8e0d0'} 75%); background-size:800px 100%; animation: shimmer 1.3s infinite; border-radius:12px; }
     .newBadge { animation: pulseNew 1.5s infinite; }
     input[type=range] { -webkit-appearance:none; width:100%; height:6px; border-radius:5px; background:#3a2410; outline:none; }
     input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#ff6600; cursor:pointer; box-shadow:0 0 10px rgba(255,102,0,0.9); }
@@ -361,7 +383,7 @@ export default function Home() {
   `;
 
   const posterCard = (story, w) => (
-    <div key={story.id} onClick={() => openStory(story)} className="card" style={{ minWidth: w, width: w, backgroundColor: '#14141a', borderRadius: '12px', overflow: 'hidden', border: '1px solid #2a2a35', cursor: 'pointer', position: 'relative', flexShrink: 0 }}>
+    <div key={story.id} onClick={() => openStory(story)} className="card" style={{ minWidth: w, width: w, backgroundColor: C.card, borderRadius: '12px', overflow: 'hidden', border: '1px solid ' + C.border, cursor: 'pointer', position: 'relative', flexShrink: 0 }}>
       {story.poster ? (
         <img src={story.poster} alt={story.title} style={{ width: '100%', height: '190px', objectFit: 'cover', display: 'block' }} />
       ) : (
@@ -377,30 +399,31 @@ export default function Home() {
   );
 
   return (
-    <div style={{ backgroundColor: '#0a0a10', color: '#fff', minHeight: '100vh', fontFamily: 'sans-serif' }}>
+    <div style={{ backgroundColor: C.bg, color: C.text, minHeight: '100vh', fontFamily: 'sans-serif', transition: 'background-color 0.4s, color 0.4s' }}>
       <Head><title>साया - खौफ़ की हिंदी कहानियाँ 👻</title></Head>
       <style>{css}</style>
 
       <div style={{ filter: blurBg ? 'blur(8px)' : 'none', pointerEvents: blurBg ? 'none' : 'auto', transition: 'filter 0.3s' }}>
 
-        {/* ===== NETFLIX-STYLE NAVBAR ===== */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', position: 'sticky', top: 0, zIndex: 50, background: 'linear-gradient(180deg, rgba(10,10,16,0.98), rgba(10,10,16,0.85))', backdropFilter: 'blur(8px)', borderBottom: '1px solid #1a1a22' }}>
+        {/* ===== NAVBAR ===== */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', position: 'sticky', top: 0, zIndex: 50, background: C.nav, backdropFilter: 'blur(8px)', borderBottom: '1px solid ' + C.navBorder }}>
           <h1 className="sayaTitle" style={{ fontSize: '1.9rem', color: '#ff6600', margin: 0, letterSpacing: '3px', fontFamily: 'Georgia, serif' }}>साया 👻</h1>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <button onClick={() => setLang('hindi')} style={{ padding: '6px 14px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: lang === 'hindi' ? '#ff6600' : 'transparent', color: lang === 'hindi' ? '#fff' : '#888', border: lang === 'hindi' ? 'none' : '1px solid #2a2a35' }}>हिंदी</button>
-            <button onClick={() => setLang('english')} style={{ padding: '6px 14px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: lang === 'english' ? '#ff6600' : 'transparent', color: lang === 'english' ? '#fff' : '#888', border: lang === 'english' ? 'none' : '1px solid #2a2a35' }}>Eng</button>
-            {!isAdmin && <button onClick={() => setShowLogin(true)} style={{ padding: '6px 10px', backgroundColor: 'transparent', color: '#3a3a45', border: '1px solid #1e1e28', borderRadius: '18px', cursor: 'pointer', fontSize: '0.7rem' }}>Admin</button>}
+            <button onClick={toggleTheme} style={{ padding: '6px 10px', borderRadius: '18px', cursor: 'pointer', fontSize: '1rem', backgroundColor: 'transparent', border: '1px solid ' + C.border }}>{dk ? '☀️' : '🌙'}</button>
+            <button onClick={() => setLang('hindi')} style={{ padding: '6px 14px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: lang === 'hindi' ? '#ff6600' : 'transparent', color: lang === 'hindi' ? '#fff' : C.sub, border: lang === 'hindi' ? 'none' : '1px solid ' + C.border }}>हिंदी</button>
+            <button onClick={() => setLang('english')} style={{ padding: '6px 14px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: lang === 'english' ? '#ff6600' : 'transparent', color: lang === 'english' ? '#fff' : C.sub, border: lang === 'english' ? 'none' : '1px solid ' + C.border }}>Eng</button>
+            {!isAdmin && <button onClick={() => setShowLogin(true)} style={{ padding: '6px 10px', backgroundColor: 'transparent', color: C.sub, border: '1px solid ' + C.border, borderRadius: '18px', cursor: 'pointer', fontSize: '0.7rem', opacity: 0.6 }}>Admin</button>}
             {isAdmin && <button onClick={() => setShowPanel(true)} style={{ ...orgBtn, padding: '7px 14px', fontSize: '0.8rem' }}>📝 Add</button>}
           </div>
         </div>
 
         <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 14px' }}>
 
-          {/* ===== HERO BANNER SLIDER ===== */}
+          {/* ===== HERO BANNER ===== */}
           {hero && (
-            <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', marginTop: '15px', border: '1px solid #2a2a35', cursor: 'pointer' }} onClick={() => openStory(hero)}>
+            <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', marginTop: '15px', border: '1px solid ' + C.border, cursor: 'pointer' }} onClick={() => openStory(hero)}>
               <img key={hero.id} src={hero.poster} alt={hero.title} className="heroImg" style={{ width: '100%', height: '46vw', maxHeight: '400px', minHeight: '220px', objectFit: 'cover', display: 'block' }} />
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(10,10,16,0.15) 30%, rgba(10,10,16,0.75) 75%, #0a0a10 100%)' }}></div>
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 30%, rgba(0,0,0,0.72) 75%, rgba(0,0,0,0.9) 100%)' }}></div>
               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px' }}>
                 {isNew(hero) && <span style={{ backgroundColor: '#e50914', color: '#fff', borderRadius: '4px', padding: '3px 9px', fontSize: '0.7rem', fontWeight: 'bold' }}>NEW</span>}
                 <h2 style={{ color: '#fff', margin: '8px 0 4px', fontSize: '1.7rem', fontFamily: 'Georgia, serif', textShadow: '2px 2px 10px #000' }}>{hero.title}</h2>
@@ -415,7 +438,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* ===== SKELETON LOADING ===== */}
           {loading && (
             <>
               <div className="skel" style={{ width: '100%', height: '250px', marginTop: '15px' }}></div>
@@ -425,10 +447,9 @@ export default function Home() {
             </>
           )}
 
-          {/* ===== TRENDING ROW ===== */}
           {!loading && trending.length > 0 && (
             <div style={{ marginTop: '25px' }}>
-              <h2 style={{ color: '#fff', fontSize: '1.2rem', margin: '0 0 2px' }}>🔥 {isEng ? 'Most Watched' : 'सबसे ज़्यादा देखी गई'}</h2>
+              <h2 style={{ color: C.text, fontSize: '1.2rem', margin: '0 0 2px' }}>🔥 {isEng ? 'Most Watched' : 'सबसे ज़्यादा देखी गई'}</h2>
               <div className="row">
                 {trending.map((story, i) => (
                   <div key={story.id} style={{ display: 'flex', alignItems: 'flex-end', flexShrink: 0 }}>
@@ -440,30 +461,28 @@ export default function Home() {
             </div>
           )}
 
-          {/* ===== NEW STORIES ROW ===== */}
           {!loading && newest.length > 0 && (
             <div style={{ marginTop: '10px' }}>
-              <h2 style={{ color: '#fff', fontSize: '1.2rem', margin: '0 0 2px' }}>🆕 {isEng ? 'New Stories' : 'नई कहानियाँ'}</h2>
+              <h2 style={{ color: C.text, fontSize: '1.2rem', margin: '0 0 2px' }}>🆕 {isEng ? 'New Stories' : 'नई कहानियाँ'}</h2>
               <div className="row">
                 {newest.map(story => posterCard(story, '140px'))}
               </div>
             </div>
           )}
 
-          {/* ===== TABS + FULL GRID ===== */}
           {!loading && (
             <div style={{ marginTop: '10px' }}>
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '5px' }}>
-                <h2 style={{ color: '#fff', fontSize: '1.2rem', margin: 0 }}>{isEng ? 'All Stories' : 'सभी कहानियाँ'}</h2>
-                <button onClick={() => setTab('audio')} style={{ padding: '6px 16px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: tab === 'audio' ? '#ff6600' : '#14141a', color: tab === 'audio' ? '#fff' : '#888', border: tab === 'audio' ? 'none' : '1px solid #2a2a35' }}>🔊 {isEng ? 'Listen' : 'सुनो'}</button>
-                <button onClick={() => setTab('text')} style={{ padding: '6px 16px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: tab === 'text' ? '#ff6600' : '#14141a', color: tab === 'text' ? '#fff' : '#888', border: tab === 'text' ? 'none' : '1px solid #2a2a35' }}>📖 {isEng ? 'Read' : 'पढ़ो'}</button>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '5px', flexWrap: 'wrap' }}>
+                <h2 style={{ color: C.text, fontSize: '1.2rem', margin: 0 }}>{isEng ? 'All Stories' : 'सभी कहानियाँ'}</h2>
+                <button onClick={() => setTab('audio')} style={{ padding: '6px 16px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: tab === 'audio' ? '#ff6600' : C.card, color: tab === 'audio' ? '#fff' : C.sub, border: tab === 'audio' ? 'none' : '1px solid ' + C.border }}>🔊 {isEng ? 'Listen' : 'सुनो'}</button>
+                <button onClick={() => setTab('text')} style={{ padding: '6px 16px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: tab === 'text' ? '#ff6600' : C.card, color: tab === 'text' ? '#fff' : C.sub, border: tab === 'text' ? 'none' : '1px solid ' + C.border }}>📖 {isEng ? 'Read' : 'पढ़ो'}</button>
               </div>
 
-              {showList.length === 0 && <p style={{ color: '#666', textAlign: 'center', padding: '30px' }}>{isEng ? 'No stories here yet...' : 'अभी कोई कहानी नहीं...'}</p>}
+              {showList.length === 0 && <p style={{ color: C.sub, textAlign: 'center', padding: '30px' }}>{isEng ? 'No stories here yet...' : 'अभी कोई कहानी नहीं...'}</p>}
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '14px', paddingTop: '10px' }}>
                 {showList.map((story) => (
-                  <div key={story.id} onClick={() => openStory(story)} className="card" style={{ backgroundColor: '#14141a', borderRadius: '12px', overflow: 'hidden', border: '1px solid #2a2a35', cursor: 'pointer', position: 'relative' }}>
+                  <div key={story.id} onClick={() => openStory(story)} className="card" style={{ backgroundColor: C.card, borderRadius: '12px', overflow: 'hidden', border: '1px solid ' + C.border, cursor: 'pointer', position: 'relative' }}>
                     {story.poster ? (
                       <div style={{ position: 'relative' }}>
                         <img src={story.poster} alt={story.title} style={{ width: '100%', height: '210px', objectFit: 'cover', display: 'block' }} />
@@ -494,14 +513,14 @@ export default function Home() {
             </div>
           )}
 
-          <p style={{ textAlign: 'center', color: '#3a2a1a', padding: '30px 0', fontSize: '0.8rem' }}>© साया - खौफ़ की हिंदी कहानियाँ 🎃 • "डर सिर्फ एक कहानी की दूरी पर है..."</p>
+          <p style={{ textAlign: 'center', color: C.footer, padding: '30px 0', fontSize: '0.8rem' }}>© साया - खौफ़ की हिंदी कहानियाँ 🎃 • "डर सिर्फ एक कहानी की दूरी पर है..."</p>
         </div>
       </div>
 
       {!blurBg && (
         <>
-          <button onClick={() => { setShowWheel(true); setWheelMsg(''); }} className="wobble" style={{ position: 'fixed', bottom: '20px', left: '15px', zIndex: 90, backgroundColor: '#1a1410', border: '2px solid #ff6600', borderRadius: '50%', width: '56px', height: '56px', fontSize: '1.6rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,102,0,0.4)' }}>🎰</button>
-          <button onClick={toggleAmb} style={{ position: 'fixed', bottom: '20px', right: '15px', zIndex: 90, backgroundColor: ambOn ? '#ff6600' : '#1a1410', border: '2px solid #ff6600', borderRadius: '50%', width: '56px', height: '56px', fontSize: '1.4rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,102,0,0.4)' }}>{ambOn ? '🔊' : '🔇'}</button>
+          <button onClick={() => { setShowWheel(true); setWheelMsg(''); }} className="wobble" style={{ position: 'fixed', bottom: '20px', left: '15px', zIndex: 90, backgroundColor: dk ? '#1a1410' : '#fff', border: '2px solid #ff6600', borderRadius: '50%', width: '56px', height: '56px', fontSize: '1.6rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,102,0,0.4)' }}>🎰</button>
+          <button onClick={toggleAmb} style={{ position: 'fixed', bottom: '20px', right: '15px', zIndex: 90, backgroundColor: ambOn ? '#ff6600' : (dk ? '#1a1410' : '#fff'), border: '2px solid #ff6600', borderRadius: '50%', width: '56px', height: '56px', fontSize: '1.4rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,102,0,0.4)' }}>{ambOn ? '🔊' : '🔇'}</button>
         </>
       )}
 
