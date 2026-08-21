@@ -536,7 +536,16 @@ export default function Home() {
             </div>
           )}
 
-          <p style={{ textAlign: 'center', color: C.footer, padding: '30px 0', fontSize: '0.8rem' }}>© साया - खौफ़ की हिंदी कहानियाँ 🎃 • "डर सिर्फ एक कहानी की दूरी पर है..."</p>
+          <div style={{ textAlign: 'center', padding: '30px 0' }}>
+            <p style={{ color: C.footer, fontSize: '0.8rem', margin: '0 0 10px' }}>© साया - खौफ़ की हिंदी कहानियाँ 🎃 • "डर सिर्फ एक कहानी की दूरी पर है..."</p>
+            <p style={{ fontSize: '0.75rem', margin: 0 }}>
+              <a href="/policy" style={{ color: '#ff8822', textDecoration: 'none', margin: '0 8px' }}>About Us</a>•
+              <a href="/policy" style={{ color: '#ff8822', textDecoration: 'none', margin: '0 8px' }}>Contact</a>•
+              <a href="/policy" style={{ color: '#ff8822', textDecoration: 'none', margin: '0 8px' }}>Privacy Policy</a>•
+              <a href="/policy" style={{ color: '#ff8822', textDecoration: 'none', margin: '0 8px' }}>Terms</a>•
+              <a href="/policy" style={{ color: '#ff8822', textDecoration: 'none', margin: '0 8px' }}>Refund Policy</a>
+            </p>
+          </div>
         </div>
       </div>
 
