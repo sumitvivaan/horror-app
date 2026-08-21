@@ -10,7 +10,7 @@ const UPLOAD_PRESET = "wlse6ksh";
 // ⬇️ LINE 11: RAZORPAY KEY ⬇️
 const RAZORPAY_KEY = "YAHAN_RAZORPAY_KEY_DALO";
 // ⬇️ LINE 13: AMBIENCE SOUND (Cloudinary par horror ambience MP3 upload karke link dalo) ⬇️
-const AMBIENCE_URL = "YAHAN_AMBIENCE_MP3_LINK_DALO";
+const AMBIENCE_URL = "https://res.cloudinary.com/zyexm5wm/video/upload/v1787307374/simplesound-horror-trailer-443327.mp3";
 
 function formatTime(sec) {
   if (!sec || isNaN(sec)) return "0:00";
