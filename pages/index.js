@@ -9,7 +9,6 @@ const CLOUD_NAME = "wlse6ksh";
 const UPLOAD_PRESET = "wlse6ksh";
 // ⬇️ LINE 11: RAZORPAY KEY ⬇️
 const RAZORPAY_KEY = "YAHAN_RAZORPAY_KEY_DALO";
-// ⬇️ LINE 13: AMBIENCE SOUND (Cloudinary par horror ambience MP3 upload karke link dalo) ⬇️
 const AMBIENCE_URL = "https://res.cloudinary.com/zyexm5wm/video/upload/v1787307374/simplesound-horror-trailer-443327.mp3";
 
 function formatTime(sec) {
@@ -46,8 +45,6 @@ export default function Home() {
   const [curTime, setCurTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [unlocked, setUnlocked] = useState([]);
-  const [candle, setCandle] = useState(false);
-  const [candlePos, setCandlePos] = useState({ x: 200, y: 300 });
   const [offerLeft, setOfferLeft] = useState('');
   const [showWheel, setShowWheel] = useState(false);
   const [wheelDeg, setWheelDeg] = useState(0);
@@ -89,7 +86,6 @@ export default function Home() {
 
   const openStory = (story) => {
     setReadingStory(story);
-    setCandle(false);
     try {
       updateDoc(doc(db, "stories", story.id), { views: increment(1) });
       setStories(prev => prev.map(s => s.id === story.id ? { ...s, views: (s.views || 0) + 1 } : s));
@@ -221,7 +217,7 @@ export default function Home() {
   };
 
   const toggleAmb = () => {
-    if (AMBIENCE_URL.includes('YAHAN')) return alert('Ambience sound ka link abhi code (Line 13) mein nahi dala gaya!');
+    if (AMBIENCE_URL.includes('YAHAN')) return alert('Ambience sound ka link abhi code mein nahi dala gaya!');
     if (!ambRef.current) { ambRef.current = new Audio(AMBIENCE_URL); ambRef.current.loop = true; ambRef.current.volume = 0.2; }
     if (ambOn) { ambRef.current.pause(); setAmbOn(false); }
     else { ambRef.current.play().catch(() => {}); setAmbOn(true); }
@@ -296,12 +292,6 @@ export default function Home() {
         }
       });
     } catch (e) { alert('Card error: ' + e.message); }
-  };
-
-  const movCandle = (e) => {
-    if (!candle) return;
-    if (e.touches && e.touches[0]) setCandlePos({ x: e.touches[0].clientX, y: e.touches[0].clientY });
-    else setCandlePos({ x: e.clientX, y: e.clientY });
   };
 
   const togglePlay = () => {
@@ -445,7 +435,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ===== FLOATING BUTTONS: Wheel + Ambience ===== */}
       {!blurBg && (
         <>
           <button onClick={() => { setShowWheel(true); setWheelMsg(''); }} className="wobble" style={{ position: 'fixed', bottom: '20px', left: '15px', zIndex: 90, backgroundColor: '#1a1410', border: '2px solid #ff6600', borderRadius: '50%', width: '58px', height: '58px', fontSize: '1.7rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,102,0,0.4)' }}>🎰</button>
@@ -453,7 +442,6 @@ export default function Home() {
         </>
       )}
 
-      {/* ===== SPIN THE WHEEL MODAL ===== */}
       {showWheel && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 120, padding: '20px' }} onClick={() => !spinning && setShowWheel(false)}>
           <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#1a1410', padding: '25px', borderRadius: '16px', border: '2px solid #ff6600', width: '100%', maxWidth: '360px', textAlign: 'center', boxShadow: '0 0 40px rgba(255,102,0,0.3)' }}>
@@ -472,9 +460,8 @@ export default function Home() {
         </div>
       )}
 
-      {/* ===== STORY MODAL ===== */}
       {readingStory && (
-        <div onMouseMove={movCandle} onTouchMove={movCandle} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(5,2,0,0.6)', zIndex: 100, overflowY: 'auto', padding: '15px' }}>
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(5,2,0,0.6)', zIndex: 100, overflowY: 'auto', padding: '15px' }}>
           <div style={{ maxWidth: '650px', margin: '35px auto 30px' }}>
             <div className="frame" style={{ padding: '35px 18px 25px' }}>
               <span className="corner" style={{ top: '6px', left: '8px' }}>🕸️</span>
@@ -483,7 +470,7 @@ export default function Home() {
               <span className="corner" style={{ bottom: '6px', right: '8px' }}>🦴</span>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '15px' }}>
-                <button onClick={() => { setReadingStory(null); setPlaying(false); setCurTime(0); setDuration(0); setCandle(false); }} style={{ padding: '8px 16px', backgroundColor: 'rgba(0,0,0,0.5)', color: '#c9962e', border: '1px solid #6b4a12', borderRadius: '8px', cursor: 'pointer' }}>← वापस</button>
+                <button onClick={() => { setReadingStory(null); setPlaying(false); setCurTime(0); setDuration(0); }} style={{ padding: '8px 16px', backgroundColor: 'rgba(0,0,0,0.5)', color: '#c9962e', border: '1px solid #6b4a12', borderRadius: '8px', cursor: 'pointer' }}>← वापस</button>
                 <button onClick={() => shareStory(readingStory)} style={{ padding: '8px 16px', backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>📤 Share</button>
                 <button onClick={() => shareCardImg(readingStory)} style={{ padding: '8px 16px', backgroundColor: '#5c3a1a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>🖼️ Poster Share</button>
               </div>
@@ -544,9 +531,8 @@ export default function Home() {
 
                   {readingStory.text && (
                     <>
-                      <div style={{ textAlign: 'center', display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                        <button onClick={() => downloadText(readingStory)} style={{ ...orgBtn, padding: '9px 20px', marginBottom: '14px', fontSize: '0.85rem' }}>⬇️ डाउनलोड</button>
-                        <button onClick={() => setCandle(!candle)} style={{ padding: '9px 20px', marginBottom: '14px', fontSize: '0.85rem', backgroundColor: candle ? '#c9962e' : '#2a1a0a', color: candle ? '#000' : '#c9962e', border: '1px solid #6b4a12', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>🕯️ {candle ? 'मोमबत्ती बुझाओ' : 'मोमबत्ती में पढ़ो'}</button>
+                      <div style={{ textAlign: 'center' }}>
+                        <button onClick={() => downloadText(readingStory)} style={{ ...orgBtn, padding: '9px 22px', marginBottom: '14px', fontSize: '0.85rem' }}>⬇️ कहानी डाउनलोड करो</button>
                       </div>
                       <div style={{ color: '#e8d5b8', lineHeight: '2', fontSize: '1.1rem', whiteSpace: 'pre-wrap', fontFamily: 'Georgia, serif', padding: '5px 8px 10px' }}>{readingStory.text}</div>
                     </>
@@ -569,15 +555,9 @@ export default function Home() {
               )}
             </div>
           </div>
-
-          {/* CANDLE OVERLAY */}
-          {candle && (
-            <div style={{ position: 'fixed', inset: 0, zIndex: 150, pointerEvents: 'none', background: `radial-gradient(circle 140px at ${candlePos.x}px ${candlePos.y}px, rgba(255,150,50,0.05) 0%, rgba(0,0,0,0.5) 100px, rgba(0,0,0,0.985) 190px)` }}></div>
-          )}
         </div>
       )}
 
-      {/* ===== LOGIN MODAL ===== */}
       {showLogin && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 100, padding: '20px' }} onClick={() => setShowLogin(false)}>
           <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#1a1410', padding: '30px', borderRadius: '16px', border: '2px solid #ff6600', width: '100%', maxWidth: '350px', boxShadow: '0 0 40px rgba(255,102,0,0.3)' }}>
@@ -588,7 +568,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* ===== ADMIN PANEL ===== */}
       {showPanel && isAdmin && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', zIndex: 100, padding: '20px', overflowY: 'auto' }}>
           <div style={{ backgroundColor: '#1a1410', padding: '25px', borderRadius: '16px', border: editId ? '2px solid #ffaa00' : '2px solid #ff6600', width: '100%', maxWidth: '550px', margin: '20px 0', boxShadow: '0 0 40px rgba(255,102,0,0.3)' }}>
