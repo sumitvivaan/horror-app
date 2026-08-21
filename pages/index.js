@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { db, auth } from '../lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
@@ -6,7 +7,7 @@ import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, orderBy, query 
 const ADMIN_EMAIL = "vivaan2024koshiya@gmail.com";
 const CLOUD_NAME = "wlse6ksh";
 const UPLOAD_PRESET = "wlse6ksh";
-// ⬇️ LINE 10: APNI RAZORPAY KEY YAHAN DALO ⬇️
+// ⬇️ LINE 11: APNI RAZORPAY KEY YAHAN DALO ⬇️
 const RAZORPAY_KEY = "YAHAN_RAZORPAY_KEY_DALO";
 
 function formatTime(sec) {
@@ -117,7 +118,7 @@ export default function Home() {
   const isUnlocked = (story) => !story.price || story.price === 0 || unlocked.includes(story.id) || isAdmin;
 
   const payStory = (story) => {
-    if (RAZORPAY_KEY.includes('YAHAN')) return alert('Razorpay Key abhi nahi dali gayi! Line 10 mein dalo.');
+    if (RAZORPAY_KEY.includes('YAHAN')) return alert('Razorpay Key abhi nahi dali gayi! Line 11 mein dalo.');
     const rzp = new window.Razorpay({
       key: RAZORPAY_KEY, amount: story.price * 100, currency: 'INR',
       name: 'साया - खौफ़ की कहानियाँ', description: story.title,
@@ -148,6 +149,15 @@ export default function Home() {
     const a = document.createElement('a');
     a.href = url; a.download = story.title + '.txt'; a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const shareStory = (story) => {
+    const msg = '👻 "' + story.title + '" - darawani kahani suno/padho FREE!\n\n' + window.location.origin + '\n\n🎧 Akele mat sunna...';
+    if (navigator.share) {
+      navigator.share({ title: story.title, text: msg }).catch(() => {});
+    } else {
+      window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    }
   };
 
   const togglePlay = () => {
@@ -199,6 +209,7 @@ export default function Home() {
 
   return (
     <div style={{ backgroundColor: '#0a0a10', color: '#fff', minHeight: '100vh', fontFamily: 'sans-serif' }}>
+      <Head><title>साया - खौफ़ की हिंदी कहानियाँ 👻</title></Head>
       <style>{css}</style>
 
       <div style={{ filter: blurBg ? 'blur(8px)' : 'none', pointerEvents: blurBg ? 'none' : 'auto', transition: 'filter 0.3s' }}>
@@ -287,6 +298,7 @@ export default function Home() {
               <span className="corner" style={{ bottom: '6px', right: '8px' }}>🦴</span>
 
               <button onClick={() => { setReadingStory(null); setPlaying(false); setCurTime(0); setDuration(0); }} style={{ padding: '8px 18px', backgroundColor: 'rgba(0,0,0,0.5)', color: '#c9962e', border: '1px solid #6b4a12', borderRadius: '8px', cursor: 'pointer', marginBottom: '15px' }}>← वापस</button>
+              <button onClick={() => shareStory(readingStory)} style={{ padding: '8px 18px', backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', marginBottom: '15px', marginLeft: '10px', fontWeight: 'bold' }}>📤 Share करो</button>
 
               {readingStory.poster && (
                 <div style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', marginBottom: '15px', border: '2px solid #6b4a12' }}>
