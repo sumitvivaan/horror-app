@@ -69,6 +69,7 @@ export default function Home() {
   const audioRef = useRef(null);
   const ambRef = useRef(null);
   const touchX = useRef(0);
+  const readingRef = useRef(null);
 
   useEffect(() => {
     loadStories();
@@ -84,6 +85,13 @@ export default function Home() {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
     }
+    const onPop = () => {
+      if (readingRef.current) {
+        readingRef.current = null;
+        setReadingStory(null); setPlaying(false); setCurTime(0); setDuration(0);
+      }
+    };
+    window.addEventListener('popstate', onPop);
     window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); setInstallEvt(e); });
     const t = setInterval(() => {
       const now = new Date();
@@ -93,7 +101,7 @@ export default function Home() {
       setOfferLeft(h + 'घं ' + m + 'मि ' + sc + 'से');
     }, 1000);
     const ht = setInterval(() => setHeroIdx(i => i + 1), 4000);
-    return () => { clearInterval(t); clearInterval(ht); };
+    return () => { clearInterval(t); clearInterval(ht); window.removeEventListener('popstate', onPop); };
   }, []);
 
   const submitUserStory = async () => {
@@ -140,7 +148,14 @@ export default function Home() {
     setPendingSubs(prev => prev.filter(p => p.id !== id));
   };
 
-  const closeStory = () => { setReadingStory(null); setPlaying(false); setCurTime(0); setDuration(0); };
+  const closeStory = () => {
+    if (readingRef.current) {
+      readingRef.current = null;
+      window.history.back();
+    } else {
+      setReadingStory(null); setPlaying(false); setCurTime(0); setDuration(0);
+    }
+  };
   const onTouchStart = (e) => { touchX.current = e.touches[0].clientX; };
   const onTouchEnd = (e) => {
     const diff = e.changedTouches[0].clientX - touchX.current;
@@ -175,6 +190,8 @@ export default function Home() {
 
   const openStory = (story) => {
     setReadingStory(story);
+    readingRef.current = story;
+    window.history.pushState({ story: true }, '');
     try {
       updateDoc(doc(db, "stories", story.id), { views: increment(1) });
       setStories(prev => prev.map(s => s.id === story.id ? { ...s, views: (s.views || 0) + 1 } : s));
