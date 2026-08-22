@@ -61,6 +61,7 @@ export default function Home() {
   const [showIosGuide, setShowIosGuide] = useState(false);
   const audioRef = useRef(null);
   const ambRef = useRef(null);
+  const touchX = useRef(0);
 
   useEffect(() => {
     loadStories();
@@ -73,6 +74,9 @@ export default function Home() {
     const s = document.createElement('script');
     s.src = 'https://checkout.razorpay.com/v1/checkout.js';
     document.body.appendChild(s);
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
     window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); setInstallEvt(e); });
     const t = setInterval(() => {
       const now = new Date();
@@ -84,6 +88,13 @@ export default function Home() {
     const ht = setInterval(() => setHeroIdx(i => i + 1), 4000);
     return () => { clearInterval(t); clearInterval(ht); };
   }, []);
+
+  const closeStory = () => { setReadingStory(null); setPlaying(false); setCurTime(0); setDuration(0); };
+  const onTouchStart = (e) => { touchX.current = e.touches[0].clientX; };
+  const onTouchEnd = (e) => {
+    const diff = e.changedTouches[0].clientX - touchX.current;
+    if (diff > 90 && touchX.current < 60) closeStory();
+  };
 
   const installApp = () => {
     const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent);
@@ -592,14 +603,15 @@ export default function Home() {
       )}
 
       {readingStory && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(5,2,0,0.6)', zIndex: 100, overflowY: 'auto', padding: '15px' }}>
+        <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(5,2,0,0.6)', zIndex: 100, overflowY: 'auto', padding: '15px' }}>
           <div className="vignette"></div>
           <span className="storyBat">🦇</span>
           <div className="spider"><div className="thread"></div>🕷️</div>
           <span className="eyes">👀</span>
           <span className="eyes eyes2">👀</span>
           <div className="fog"></div>
-          <div style={{ maxWidth: '650px', margin: '35px auto 30px', position: 'relative', zIndex: 102 }}>
+          <button onClick={closeStory} style={{ position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 110, backgroundColor: '#ff6600', color: '#fff', border: 'none', borderRadius: '25px', padding: '13px 32px', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 25px rgba(255,102,0,0.7)' }}>← वापस</button>
+          <div style={{ maxWidth: '650px', margin: '35px auto 90px', position: 'relative', zIndex: 102 }}>
             <div className="frame" style={{ padding: '35px 18px 25px' }}>
               <span className="corner" style={{ top: '6px', left: '8px' }}>🕸️</span>
               <span className="corner" style={{ top: '6px', right: '8px' }}>🕸️</span>
@@ -607,7 +619,7 @@ export default function Home() {
               <span className="corner" style={{ bottom: '6px', right: '8px' }}>🦴</span>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '15px' }}>
-                <button onClick={() => { setReadingStory(null); setPlaying(false); setCurTime(0); setDuration(0); }} style={{ padding: '8px 16px', backgroundColor: 'rgba(0,0,0,0.5)', color: '#c9962e', border: '1px solid #6b4a12', borderRadius: '8px', cursor: 'pointer' }}>← वापस</button>
+                <button onClick={closeStory} style={{ padding: '8px 16px', backgroundColor: 'rgba(0,0,0,0.5)', color: '#c9962e', border: '1px solid #6b4a12', borderRadius: '8px', cursor: 'pointer' }}>← वापस</button>
                 <button onClick={() => shareStory(readingStory)} style={{ padding: '8px 16px', backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>📤 Share</button>
                 <button onClick={() => shareCardImg(readingStory)} style={{ padding: '8px 16px', backgroundColor: '#5c3a1a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>🖼️ Poster Share</button>
               </div>
