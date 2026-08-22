@@ -77,6 +77,7 @@ export default function Home() {
   const [searchQ, setSearchQ] = useState('');
   const [catFilter, setCatFilter] = useState('all');
   const [storyCat, setStoryCat] = useState('अन्य');
+  const [hasPass, setHasPass] = useState(false);
   const audioRef = useRef(null);
   const ambRef = useRef(null);
   const touchX = useRef(0);
@@ -86,6 +87,7 @@ export default function Home() {
     loadStories();
     onAuthStateChanged(auth, (u) => { setIsAdmin(!!u && u.email === ADMIN_EMAIL); });
     try { setUnlocked(JSON.parse(localStorage.getItem('unlocked') || '[]')); } catch (e) {}
+    try { setHasPass(localStorage.getItem('premiumPass') === 'yes'); } catch (e) {}
     try { setFearVotes(JSON.parse(localStorage.getItem('fearVotes') || '{}')); } catch (e) {}
     try { setSharesCnt(JSON.parse(localStorage.getItem('sharesCnt') || '{}')); } catch (e) {}
     const savedTheme = localStorage.getItem('theme');
@@ -98,6 +100,18 @@ export default function Home() {
     }
     const onPop = () => {
       if (readingRef.current) {
+        try {
+          const st = readingRef.current;
+          if (audioRef.current && audioRef.current.currentTime > 5) {
+            const saved = JSON.parse(localStorage.getItem('audioPos') || '{}');
+            if (audioRef.current.currentTime < (audioRef.current.duration || 999999) - 10) {
+              saved[st.id] = audioRef.current.currentTime;
+            } else {
+              delete saved[st.id];
+            }
+            localStorage.setItem('audioPos', JSON.stringify(saved));
+          }
+        } catch (e) {}
         readingRef.current = null;
         setReadingStory(null); setPlaying(false); setCurTime(0); setDuration(0);
       }
@@ -197,6 +211,17 @@ export default function Home() {
   };
 
   const closeStory = () => {
+    try {
+      if (readingStory && audioRef.current && audioRef.current.currentTime > 5) {
+        const saved = JSON.parse(localStorage.getItem('audioPos') || '{}');
+        if (audioRef.current.currentTime < (audioRef.current.duration || 999999) - 10) {
+          saved[readingStory.id] = audioRef.current.currentTime;
+        } else {
+          delete saved[readingStory.id];
+        }
+        localStorage.setItem('audioPos', JSON.stringify(saved));
+      }
+    } catch (e) {}
     if (readingRef.current) {
       readingRef.current = null;
       window.history.back();
@@ -241,6 +266,15 @@ export default function Home() {
     readingRef.current = story;
     window.history.pushState({ story: true }, '');
     loadComments(story.id);
+    setTimeout(() => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('audioPos') || '{}');
+        if (saved[story.id] && saved[story.id] > 5 && audioRef.current) {
+          audioRef.current.currentTime = saved[story.id];
+          setCurTime(saved[story.id]);
+        }
+      } catch (e) {}
+    }, 800);
     try {
       updateDoc(doc(db, "stories", story.id), { views: increment(1) });
       setStories(prev => prev.map(s => s.id === story.id ? { ...s, views: (s.views || 0) + 1 } : s));
@@ -304,11 +338,26 @@ export default function Home() {
     loadStories();
   };
 
-  const isUnlocked = (story) => !story.price || story.price === 0 || unlocked.includes(story.id) || isAdmin;
+  const isUnlocked = (story) => !story.price || story.price === 0 || hasPass || unlocked.includes(story.id) || isAdmin;
 
   const doUnlock = (id) => {
     const nu = [...unlocked, id];
     setUnlocked(nu); localStorage.setItem('unlocked', JSON.stringify(nu));
+  };
+
+  const buyPass = () => {
+    if (RAZORPAY_KEY.includes('YAHAN')) return alert('Razorpay Key abhi nahi dali gayi!');
+    const rzp = new window.Razorpay({
+      key: RAZORPAY_KEY, amount: 99 * 100, currency: 'INR',
+      name: 'साया - Premium Pass 👑', description: 'सभी कहानियाँ हमेशा के लिए UNLOCK',
+      handler: function () {
+        setHasPass(true);
+        localStorage.setItem('premiumPass', 'yes');
+        alert('👑 बधाई हो! आप अब PREMIUM MEMBER हो! सभी कहानियाँ unlock! 🎉');
+      },
+      theme: { color: '#ffaa00' }
+    });
+    rzp.open();
   };
 
   const payStory = (story) => {
@@ -583,6 +632,21 @@ export default function Home() {
             </div>
           </div>
 
+          {!hasPass && !isAdmin && (
+            <div onClick={buyPass} style={{ marginTop: '12px', background: 'linear-gradient(135deg, #3d2800, #1a1100)', border: '2px solid #ffaa00', borderRadius: '14px', padding: '14px 18px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 0 20px rgba(255,170,0,0.25)' }}>
+              <div>
+                <p style={{ color: '#ffcc44', margin: 0, fontWeight: 'bold', fontSize: '1rem' }}>👑 Premium Pass — सिर्फ ₹99</p>
+                <p style={{ color: '#c9a97a', margin: '3px 0 0', fontSize: '0.78rem' }}>सभी paid कहानियाँ हमेशा के लिए UNLOCK — आने वाली भी!</p>
+              </div>
+              <span style={{ backgroundColor: '#ffaa00', color: '#000', padding: '9px 18px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>₹99 लो</span>
+            </div>
+          )}
+          {hasPass && (
+            <div style={{ marginTop: '12px', background: 'linear-gradient(135deg, #3d2800, #1a1100)', border: '2px solid #ffaa00', borderRadius: '14px', padding: '10px 18px', textAlign: 'center' }}>
+              <p style={{ color: '#ffcc44', margin: 0, fontWeight: 'bold', fontSize: '0.95rem' }}>👑 आप PREMIUM MEMBER हो — सभी कहानियाँ UNLOCKED! 🎉</p>
+            </div>
+          )}
+
           {hero && (
             <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', marginTop: '10px', border: '1px solid ' + C.border, cursor: 'pointer' }} onClick={() => openStory(hero)}>
               <img key={hero.id} src={hero.poster} alt={hero.title} className="heroImg" style={{ width: '100%', height: '46vw', maxHeight: '400px', minHeight: '220px', objectFit: 'cover', display: 'block' }} />
@@ -663,7 +727,7 @@ export default function Home() {
                     )}
                     {isNew(story) && <span className="newBadge" style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#e50914', color: '#fff', borderRadius: '4px', padding: '2px 7px', fontSize: '0.65rem', fontWeight: 'bold' }}>NEW</span>}
                     {story.price > 0 && !isUnlocked(story) && <span style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: 'rgba(255,102,0,0.95)', color: '#fff', borderRadius: '20px', padding: '3px 9px', fontSize: '0.7rem', fontWeight: 'bold' }}>🔒 ₹{story.price}</span>}
-                    {story.price > 0 && isUnlocked(story) && !isAdmin && <span style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: 'rgba(0,170,0,0.9)', color: '#fff', borderRadius: '20px', padding: '3px 9px', fontSize: '0.7rem' }}>✅</span>}
+                    {story.price > 0 && isUnlocked(story) && !isAdmin && <span style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: 'rgba(0,170,0,0.9)', color: '#fff', borderRadius: '20px', padding: '3px 9px', fontSize: '0.7rem' }}>{hasPass ? '👑' : '✅'}</span>}
                     {isAdmin && (
                       <div style={{ position: 'absolute', bottom: '8px', right: '8px', display: 'flex', gap: '6px' }}>
                         <button onClick={(e) => { e.stopPropagation(); startEdit(story); }} style={{ backgroundColor: 'rgba(255,170,0,0.9)', color: '#000', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer' }}>✏️</button>
@@ -824,6 +888,9 @@ export default function Home() {
                     <p style={{ color: '#c9a97a', margin: '5px 0 0', fontSize: '1rem' }}><s style={{ color: '#777' }}>₹{readingStory.price * 2}</s> <span style={{ color: '#00cc44', fontWeight: 'bold', fontSize: '1.2rem' }}>₹{readingStory.price}</span></p>
                   </div>
                   <button onClick={() => payStory(readingStory)} style={{ ...orgBtn, padding: '16px 40px', fontSize: '1.15rem', marginTop: '5px', boxShadow: '0 0 25px rgba(255,102,0,0.4)' }}>💳 ₹{readingStory.price} देकर अनलॉक करो</button>
+                  <p style={{ color: '#666', margin: '15px 0 8px' }}>—— या ——</p>
+                  <button onClick={buyPass} style={{ padding: '14px 28px', background: 'linear-gradient(135deg, #ffaa00, #cc7700)', color: '#000', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.95rem', boxShadow: '0 0 20px rgba(255,170,0,0.4)' }}>👑 ₹99 Premium Pass — सब कुछ UNLOCK</button>
+                  <p style={{ color: '#8a6a4a', fontSize: '0.75rem', marginTop: '8px' }}>एक बार दो, सभी paid कहानियाँ हमेशा के लिए!</p>
                   <p style={{ color: '#666', margin: '15px 0 8px' }}>—— या ——</p>
                   <button onClick={() => shareUnlock(readingStory)} style={{ padding: '13px 28px', backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.95rem' }}>🎁 5 दोस्तों को Share करो, FREE पाओ ({sharesCnt[readingStory.id] || 0}/5)</button>
                   <p style={{ color: '#8a6a4a', fontSize: '0.75rem', marginTop: '8px' }}>WhatsApp par 5 baar share karo aur kahani free unlock!</p>
