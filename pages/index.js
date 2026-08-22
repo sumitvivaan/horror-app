@@ -59,6 +59,13 @@ export default function Home() {
   const [heroIdx, setHeroIdx] = useState(0);
   const [installEvt, setInstallEvt] = useState(null);
   const [showIosGuide, setShowIosGuide] = useState(false);
+  const [showSubmit, setShowSubmit] = useState(false);
+  const [subName, setSubName] = useState('');
+  const [subTitle, setSubTitle] = useState('');
+  const [subText, setSubText] = useState('');
+  const [subSending, setSubSending] = useState(false);
+  const [pendingSubs, setPendingSubs] = useState([]);
+  const [showPending, setShowPending] = useState(false);
   const audioRef = useRef(null);
   const ambRef = useRef(null);
   const touchX = useRef(0);
@@ -88,6 +95,50 @@ export default function Home() {
     const ht = setInterval(() => setHeroIdx(i => i + 1), 4000);
     return () => { clearInterval(t); clearInterval(ht); };
   }, []);
+
+  const submitUserStory = async () => {
+    if (!subName.trim() || !subTitle.trim() || !subText.trim()) return alert('Naam, Title aur Story - teeno likho!');
+    if (subText.trim().length < 100) return alert('Story thodi lambi likho (kam se kam 100 akshar)!');
+    setSubSending(true);
+    try {
+      await addDoc(collection(db, "submissions"), {
+        writer: subName.trim(), title: subTitle.trim(), text: subText.trim(),
+        createdAt: Date.now(), date: new Date().toLocaleDateString('hi-IN')
+      });
+      setSubName(''); setSubTitle(''); setSubText(''); setShowSubmit(false);
+      alert('🎉 कहानी भेज दी गई! Admin check karke jald publish karega. Dhanyawad! 👻');
+    } catch (e) { alert('Bhejne mein error: ' + e.message); }
+    setSubSending(false);
+  };
+
+  const loadPending = async () => {
+    try {
+      const snap = await getDocs(query(collection(db, "submissions"), orderBy("createdAt", "desc")));
+      setPendingSubs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setShowPending(true);
+    } catch (e) { alert('Error: ' + e.message); }
+  };
+
+  const approveSub = async (sub) => {
+    try {
+      await addDoc(collection(db, "stories"), {
+        title: sub.title, text: sub.text + '\n\n— ✍️ लेखक: ' + sub.writer,
+        poster: '', audio: '', price: 0, lang: 'hindi',
+        views: 0, fearTotal: 0, fearCount: 0,
+        createdAt: Date.now(), date: new Date().toLocaleDateString('hi-IN')
+      });
+      await deleteDoc(doc(db, "submissions", sub.id));
+      setPendingSubs(prev => prev.filter(p => p.id !== sub.id));
+      alert('✅ Approve! "' + sub.title + '" ab public hai!');
+      loadStories();
+    } catch (e) { alert('Error: ' + e.message); }
+  };
+
+  const rejectSub = async (id) => {
+    if (!confirm('Pakka REJECT karna hai? Story delete ho jayegi!')) return;
+    await deleteDoc(doc(db, "submissions", id));
+    setPendingSubs(prev => prev.filter(p => p.id !== id));
+  };
 
   const closeStory = () => { setReadingStory(null); setPlaying(false); setCurTime(0); setDuration(0); };
   const onTouchStart = (e) => { touchX.current = e.touches[0].clientX; };
@@ -368,7 +419,7 @@ export default function Home() {
   const hero = heroList.length ? heroList[heroIdx % heroList.length] : null;
   const trending = [...langStories].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
   const newest = langStories.slice(0, 8);
-  const blurBg = showLogin || (showPanel && isAdmin) || readingStory || showWheel || showIosGuide;
+  const blurBg = showLogin || (showPanel && isAdmin) || readingStory || showWheel || showIosGuide || showSubmit || showPending;
   const isEng = lang === 'english';
 
   const css = `
@@ -565,7 +616,47 @@ export default function Home() {
           <button onClick={() => { setShowWheel(true); setWheelMsg(''); }} className="wobble" style={{ position: 'fixed', bottom: '20px', left: '15px', zIndex: 90, backgroundColor: dk ? '#1a1410' : '#fff', border: '2px solid #ff6600', borderRadius: '50%', width: '56px', height: '56px', fontSize: '1.6rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,102,0,0.4)' }}>🎰</button>
           <button onClick={toggleAmb} style={{ position: 'fixed', bottom: '20px', right: '15px', zIndex: 90, backgroundColor: ambOn ? '#ff6600' : (dk ? '#1a1410' : '#fff'), border: '2px solid #ff6600', borderRadius: '50%', width: '56px', height: '56px', fontSize: '1.4rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,102,0,0.4)' }}>{ambOn ? '🔊' : '🔇'}</button>
           <button onClick={installApp} style={{ position: 'fixed', bottom: '85px', right: '15px', zIndex: 90, backgroundColor: '#ff6600', color: '#fff', border: 'none', borderRadius: '25px', padding: '12px 18px', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,102,0,0.6)' }}>📲 App Install करो</button>
+          <button onClick={() => setShowSubmit(true)} style={{ position: 'fixed', bottom: '85px', left: '15px', zIndex: 90, backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '25px', padding: '12px 16px', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 0 20px rgba(26,92,42,0.6)' }}>✍️ अपनी कहानी भेजो</button>
+          {isAdmin && <button onClick={loadPending} style={{ position: 'fixed', bottom: '145px', left: '15px', zIndex: 90, backgroundColor: '#ffaa00', color: '#000', border: 'none', borderRadius: '25px', padding: '12px 16px', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}>⏳ Pending Stories</button>}
         </>
+      )}
+
+      {showSubmit && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', zIndex: 125, padding: '20px', overflowY: 'auto' }} onClick={() => setShowSubmit(false)}>
+          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#1a1410', padding: '25px', borderRadius: '16px', border: '2px solid #1a5c2a', width: '100%', maxWidth: '500px', margin: '20px 0' }}>
+            <h2 style={{ color: '#4caf50', marginTop: 0 }}>✍️ अपनी डरावनी कहानी भेजो</h2>
+            <p style={{ color: '#8a6a4a', fontSize: '0.85rem', marginTop: '-8px' }}>आपकी आपबीती या कहानी - admin check karke publish karega, आपके नाम के साथ! 👻</p>
+            <input type="text" placeholder="आपका नाम (yahi publish hoga)" value={subName} onChange={(e) => setSubName(e.target.value)} style={inputStyle} />
+            <input type="text" placeholder="कहानी का Title" value={subTitle} onChange={(e) => setSubTitle(e.target.value)} style={inputStyle} />
+            <textarea placeholder="अपनी पूरी कहानी यहाँ लिखो... (kam se kam 100 akshar)" value={subText} onChange={(e) => setSubText(e.target.value)} rows="10" style={{ ...inputStyle, resize: 'vertical' }} />
+            <p style={{ color: '#666', fontSize: '0.75rem' }}>⚠️ Gandi bhasha/galat content wali stories REJECT ho jayengi. Kahani aapki khud ki likhi honi chahiye.</p>
+            <button onClick={submitUserStory} disabled={subSending} style={{ width: '100%', padding: '15px', backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '1.05rem', cursor: 'pointer', fontWeight: 'bold', opacity: subSending ? 0.5 : 1 }}>{subSending ? 'भेज रहे हैं...' : '📤 कहानी भेजो'}</button>
+            <button onClick={() => setShowSubmit(false)} style={{ width: '100%', padding: '10px', marginTop: '10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>बंद करो</button>
+          </div>
+        </div>
+      )}
+
+      {showPending && isAdmin && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', zIndex: 125, padding: '20px', overflowY: 'auto' }}>
+          <div style={{ backgroundColor: '#1a1410', padding: '25px', borderRadius: '16px', border: '2px solid #ffaa00', width: '100%', maxWidth: '600px', margin: '20px 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ color: '#ffaa00', margin: 0 }}>⏳ Pending Stories ({pendingSubs.length})</h2>
+              <button onClick={() => setShowPending(false)} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '50%', width: '35px', height: '35px', cursor: 'pointer' }}>✕</button>
+            </div>
+            {pendingSubs.length === 0 && <p style={{ color: '#888', textAlign: 'center', padding: '30px' }}>Koi pending story nahi hai! 🎉</p>}
+            {pendingSubs.map(sub => (
+              <div key={sub.id} style={{ backgroundColor: '#0d0d10', borderRadius: '12px', padding: '15px', marginTop: '15px', border: '1px solid #333' }}>
+                <h3 style={{ color: '#ff8822', margin: '0 0 5px' }}>{sub.title}</h3>
+                <p style={{ color: '#4caf50', fontSize: '0.85rem', margin: '0 0 10px' }}>✍️ {sub.writer} • 📅 {sub.date}</p>
+                <div style={{ color: '#ccc', fontSize: '0.9rem', lineHeight: '1.7', maxHeight: '200px', overflowY: 'auto', backgroundColor: '#14141a', padding: '12px', borderRadius: '8px', whiteSpace: 'pre-wrap' }}>{sub.text}</div>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+                  <button onClick={() => approveSub(sub)} style={{ flex: 1, padding: '12px', backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>✅ Approve & Publish</button>
+                  <button onClick={() => rejectSub(sub.id)} style={{ flex: 1, padding: '12px', backgroundColor: '#8b0000', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>❌ Reject</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       {showIosGuide && (
