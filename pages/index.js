@@ -66,12 +66,12 @@ export default function Home() {
   const [subSending, setSubSending] = useState(false);
   const [pendingSubs, setPendingSubs] = useState([]);
   const [showPending, setShowPending] = useState(false);
-    const [comments, setComments] = useState([]);
+  const [comments, setComments] = useState([]);
   const [cmtName, setCmtName] = useState('');
   const [cmtText, setCmtText] = useState('');
   const [replyTo, setReplyTo] = useState(null);
   const [cmtSending, setCmtSending] = useState(false);
-    const [showAdminMenu, setShowAdminMenu] = useState(false);
+  const [showAdminMenu, setShowAdminMenu] = useState(false);
   const audioRef = useRef(null);
   const ambRef = useRef(null);
   const touchX = useRef(0);
@@ -153,6 +153,7 @@ export default function Home() {
     await deleteDoc(doc(db, "submissions", id));
     setPendingSubs(prev => prev.filter(p => p.id !== id));
   };
+
   const loadComments = async (storyId) => {
     try {
       const snap = await getDocs(query(collection(db, "comments"), orderBy("createdAt", "desc")));
@@ -161,7 +162,8 @@ export default function Home() {
   };
 
   const postComment = async () => {
-    if (!cmtName.trim() || !cmtText.trim()) return alert('Naam aur comment dono likho!');
+    if (!isAdmin && !cmtName.trim()) return alert('Naam likho!');
+    if (!cmtText.trim()) return alert('Comment likho!');
     setCmtSending(true);
     try {
       await addDoc(collection(db, "comments"), {
@@ -188,6 +190,7 @@ export default function Home() {
       loadComments(readingStory.id);
     } catch (e) { alert('Error: ' + e.message); }
   };
+
   const closeStory = () => {
     if (readingRef.current) {
       readingRef.current = null;
@@ -232,7 +235,7 @@ export default function Home() {
     setReadingStory(story);
     readingRef.current = story;
     window.history.pushState({ story: true }, '');
-        loadComments(story.id);
+    loadComments(story.id);
     try {
       updateDoc(doc(db, "stories", story.id), { views: increment(1) });
       setStories(prev => prev.map(s => s.id === story.id ? { ...s, views: (s.views || 0) + 1 } : s));
@@ -477,7 +480,7 @@ export default function Home() {
   const hero = heroList.length ? heroList[heroIdx % heroList.length] : null;
   const trending = [...langStories].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
   const newest = langStories.slice(0, 8);
-    const blurBg = showLogin || (showPanel && isAdmin) || readingStory || showWheel || showIosGuide || showSubmit || showPending || showAdminMenu;
+  const blurBg = showLogin || (showPanel && isAdmin) || readingStory || showWheel || showIosGuide || showSubmit || showPending || showAdminMenu;
   const isEng = lang === 'english';
 
   const css = `
@@ -557,7 +560,7 @@ export default function Home() {
             <button onClick={() => setLang('hindi')} style={{ padding: '6px 14px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: lang === 'hindi' ? '#ff6600' : 'transparent', color: lang === 'hindi' ? '#fff' : C.sub, border: lang === 'hindi' ? 'none' : '1px solid ' + C.border }}>हिंदी</button>
             <button onClick={() => setLang('english')} style={{ padding: '6px 14px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: lang === 'english' ? '#ff6600' : 'transparent', color: lang === 'english' ? '#fff' : C.sub, border: lang === 'english' ? 'none' : '1px solid ' + C.border }}>Eng</button>
             {!isAdmin && <button onClick={() => setShowLogin(true)} style={{ padding: '6px 10px', backgroundColor: 'transparent', color: C.sub, border: '1px solid ' + C.border, borderRadius: '18px', cursor: 'pointer', fontSize: '0.7rem', opacity: 0.6 }}>Admin</button>}
-            {isAdmin && <button onClick={() => setShowPanel(true)}             {isAdmin && <button onClick={() => setShowAdminMenu(true)} style={{ ...orgBtn, padding: '7px 14px', fontSize: '0.8rem' }}>👑 Admin</button>}
+            {isAdmin && <button onClick={() => setShowAdminMenu(true)} style={{ ...orgBtn, padding: '7px 14px', fontSize: '0.8rem' }}>👑 Admin</button>}
           </div>
         </div>
 
@@ -675,9 +678,9 @@ export default function Home() {
           <button onClick={toggleAmb} style={{ position: 'fixed', bottom: '20px', right: '15px', zIndex: 90, backgroundColor: ambOn ? '#ff6600' : (dk ? '#1a1410' : '#fff'), border: '2px solid #ff6600', borderRadius: '50%', width: '56px', height: '56px', fontSize: '1.4rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,102,0,0.4)' }}>{ambOn ? '🔊' : '🔇'}</button>
           <button onClick={installApp} style={{ position: 'fixed', bottom: '85px', right: '15px', zIndex: 90, backgroundColor: '#ff6600', color: '#fff', border: 'none', borderRadius: '25px', padding: '12px 18px', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,102,0,0.6)' }}>📲 App Install करो</button>
           <button onClick={() => setShowSubmit(true)} style={{ position: 'fixed', bottom: '85px', left: '15px', zIndex: 90, backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '25px', padding: '12px 16px', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 0 20px rgba(26,92,42,0.6)' }}>✍️ अपनी कहानी भेजो</button>
-         
         </>
       )}
+
       {showAdminMenu && isAdmin && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 125, padding: '20px' }} onClick={() => setShowAdminMenu(false)}>
           <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#1a1410', padding: '25px', borderRadius: '16px', border: '2px solid #ff6600', width: '100%', maxWidth: '340px', boxShadow: '0 0 40px rgba(255,102,0,0.3)' }}>
@@ -691,6 +694,7 @@ export default function Home() {
           </div>
         </div>
       )}
+
       {showSubmit && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', zIndex: 125, padding: '20px', overflowY: 'auto' }} onClick={() => setShowSubmit(false)}>
           <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#1a1410', padding: '25px', borderRadius: '16px', border: '2px solid #1a5c2a', width: '100%', maxWidth: '500px', margin: '20px 0' }}>
@@ -858,7 +862,8 @@ export default function Home() {
                       </div>
                     )}
                   </div>
-                                      <div style={{ backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: '12px', padding: '15px', marginTop: '15px', border: '1px solid #6b4a12' }}>
+
+                  <div style={{ backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: '12px', padding: '15px', marginTop: '15px', border: '1px solid #6b4a12' }}>
                     <p style={{ color: '#ff8822', margin: '0 0 12px', fontWeight: 'bold' }}>💬 Comments ({comments.length})</p>
 
                     {replyTo && (
