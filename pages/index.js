@@ -66,6 +66,11 @@ export default function Home() {
   const [subSending, setSubSending] = useState(false);
   const [pendingSubs, setPendingSubs] = useState([]);
   const [showPending, setShowPending] = useState(false);
+    const [comments, setComments] = useState([]);
+  const [cmtName, setCmtName] = useState('');
+  const [cmtText, setCmtText] = useState('');
+  const [replyTo, setReplyTo] = useState(null);
+  const [cmtSending, setCmtSending] = useState(false);
   const audioRef = useRef(null);
   const ambRef = useRef(null);
   const touchX = useRef(0);
@@ -147,7 +152,41 @@ export default function Home() {
     await deleteDoc(doc(db, "submissions", id));
     setPendingSubs(prev => prev.filter(p => p.id !== id));
   };
+  const loadComments = async (storyId) => {
+    try {
+      const snap = await getDocs(query(collection(db, "comments"), orderBy("createdAt", "desc")));
+      setComments(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(c => c.storyId === storyId));
+    } catch (e) { setComments([]); }
+  };
 
+  const postComment = async () => {
+    if (!cmtName.trim() || !cmtText.trim()) return alert('Naam aur comment dono likho!');
+    setCmtSending(true);
+    try {
+      await addDoc(collection(db, "comments"), {
+        storyId: readingStory.id,
+        name: isAdmin ? '👑 Admin (साया)' : cmtName.trim(),
+        text: cmtText.trim(),
+        parentId: replyTo ? replyTo.id : null,
+        createdAt: Date.now(),
+        date: new Date().toLocaleDateString('hi-IN')
+      });
+      setCmtText(''); setReplyTo(null);
+      loadComments(readingStory.id);
+    } catch (e) { alert('Comment error: ' + e.message); }
+    setCmtSending(false);
+  };
+
+  const deleteComment = async (id) => {
+    if (!confirm('Yeh comment delete karna hai?')) return;
+    try {
+      await deleteDoc(doc(db, "comments", id));
+      for (const c of comments.filter(x => x.parentId === id)) {
+        await deleteDoc(doc(db, "comments", c.id));
+      }
+      loadComments(readingStory.id);
+    } catch (e) { alert('Error: ' + e.message); }
+  };
   const closeStory = () => {
     if (readingRef.current) {
       readingRef.current = null;
@@ -192,6 +231,7 @@ export default function Home() {
     setReadingStory(story);
     readingRef.current = story;
     window.history.pushState({ story: true }, '');
+        loadComments(story.id);
     try {
       updateDoc(doc(db, "stories", story.id), { views: increment(1) });
       setStories(prev => prev.map(s => s.id === story.id ? { ...s, views: (s.views || 0) + 1 } : s));
@@ -804,6 +844,48 @@ export default function Home() {
                         <p style={{ color: '#666', margin: '5px 0 0', fontSize: '0.75rem' }}>(1 = थोड़ा डर, 5 = बहुत डर!)</p>
                       </div>
                     )}
+                  </div>
+                                      <div style={{ backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: '12px', padding: '15px', marginTop: '15px', border: '1px solid #6b4a12' }}>
+                    <p style={{ color: '#ff8822', margin: '0 0 12px', fontWeight: 'bold' }}>💬 Comments ({comments.length})</p>
+
+                    {replyTo && (
+                      <div style={{ backgroundColor: '#1a1410', padding: '8px 12px', borderRadius: '8px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: '#ffaa55', fontSize: '0.8rem' }}>↩️ Reply: <b>{replyTo.name}</b> ko</span>
+                        <button onClick={() => setReplyTo(null)} style={{ backgroundColor: 'transparent', color: '#888', border: 'none', cursor: 'pointer' }}>✕</button>
+                      </div>
+                    )}
+
+                    {!isAdmin && <input type="text" placeholder="आपका नाम" value={cmtName} onChange={(e) => setCmtName(e.target.value)} style={{ ...inputStyle, marginBottom: '8px' }} />}
+                    <textarea placeholder={replyTo ? 'अपना reply लिखो...' : 'अपना comment लिखो...'} value={cmtText} onChange={(e) => setCmtText(e.target.value)} rows="2" style={{ ...inputStyle, marginBottom: '8px', resize: 'vertical' }} />
+                    <button onClick={postComment} disabled={cmtSending} style={{ ...orgBtn, padding: '10px 25px', fontSize: '0.9rem', opacity: cmtSending ? 0.5 : 1 }}>{cmtSending ? 'भेज रहे...' : (replyTo ? '↩️ Reply भेजो' : '💬 Comment करो')}</button>
+
+                    <div style={{ marginTop: '15px' }}>
+                      {comments.filter(c => !c.parentId).length === 0 && <p style={{ color: '#666', fontSize: '0.85rem', textAlign: 'center' }}>अभी कोई comment नहीं... पहला comment आप करो! 👻</p>}
+                      {comments.filter(c => !c.parentId).map(c => (
+                        <div key={c.id} style={{ backgroundColor: '#14100a', borderRadius: '10px', padding: '12px', marginBottom: '10px', border: c.name.includes('👑') ? '1px solid #ff6600' : '1px solid #2a2015' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: c.name.includes('👑') ? '#ff8822' : '#4caf50', fontSize: '0.85rem', fontWeight: 'bold' }}>{c.name}</span>
+                            <span style={{ color: '#555', fontSize: '0.7rem' }}>{c.date}</span>
+                          </div>
+                          <p style={{ color: '#ddd', margin: '6px 0', fontSize: '0.9rem', lineHeight: '1.6', fontFamily: 'sans-serif' }}>{c.text}</p>
+                          <div style={{ display: 'flex', gap: '12px' }}>
+                            <button onClick={() => setReplyTo(c)} style={{ backgroundColor: 'transparent', color: '#ffaa55', border: 'none', cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}>↩️ Reply</button>
+                            {isAdmin && <button onClick={() => deleteComment(c.id)} style={{ backgroundColor: 'transparent', color: '#ff4444', border: 'none', cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}>🗑️ Delete</button>}
+                          </div>
+
+                          {comments.filter(r => r.parentId === c.id).map(r => (
+                            <div key={r.id} style={{ backgroundColor: '#0d0a06', borderRadius: '8px', padding: '10px', marginTop: '8px', marginLeft: '15px', borderLeft: '2px solid ' + (r.name.includes('👑') ? '#ff6600' : '#3a3020') }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span style={{ color: r.name.includes('👑') ? '#ff8822' : '#4caf50', fontSize: '0.8rem', fontWeight: 'bold' }}>{r.name}</span>
+                                <span style={{ color: '#555', fontSize: '0.65rem' }}>{r.date}</span>
+                              </div>
+                              <p style={{ color: '#ccc', margin: '5px 0', fontSize: '0.85rem', lineHeight: '1.5', fontFamily: 'sans-serif' }}>{r.text}</p>
+                              {isAdmin && <button onClick={() => deleteComment(r.id)} style={{ backgroundColor: 'transparent', color: '#ff4444', border: 'none', cursor: 'pointer', fontSize: '0.7rem', padding: 0 }}>🗑️ Delete</button>}
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </>
               )}
