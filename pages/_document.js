@@ -11,6 +11,7 @@ export default function Document() {
         <meta name="description" content="साया - डरावनी हिंदी कहानियाँ। Hindi horror stories audio & text. Bhoot ki kahaniya, chudail ki kahani, haunted stories in Hindi. Suno aur padho FREE!" />
         <meta name="keywords" content="hindi horror story, bhoot ki kahani, darawani kahaniya, hindi horror audio story, chudail ki kahani, haunted story hindi, horror story in hindi, डरावनी कहानियां, भूत की कहानी, हॉरर स्टोरी" />
         <meta name="robots" content="index, follow" />
+        <meta name="google-site-verification" content="4P4yrP51124h6LdAysFTToer-lT3OLL9UT74paFXqmw" />
         <meta property="og:title" content="साया - खौफ़ की हिंदी कहानियाँ 👻 | Hindi Horror Stories" />
         <meta property="og:description" content="डरावनी हिंदी कहानियाँ - सुनो और पढ़ो FREE। अकेले मत सुनना... Bhoot, chudail, haunted haveli ki stories!" />
         <meta property="og:image" content="https://horror-app-liard.vercel.app/icon.png" />
