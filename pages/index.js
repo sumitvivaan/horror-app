@@ -180,18 +180,21 @@ export default function Home() {
     } catch (e) { setComments([]); }
   };
 
+  // 👑 VIP INC: Store VIP Status with the Comment to build Trust/FOMO
   const postComment = async () => {
     if (!isAdmin && !cmtName.trim()) return alert('Naam likho!');
     if (!cmtText.trim()) return alert('Comment likho!');
     setCmtSending(true);
     try {
+      const isUserPremium = hasPass || (readingStory && unlocked.includes(readingStory.id));
       await addDoc(collection(db, "comments"), {
         storyId: readingStory.id,
         name: isAdmin ? '👑 Admin (साया)' : cmtName.trim(),
         text: cmtText.trim(),
         parentId: replyTo ? replyTo.id : null,
         createdAt: Date.now(),
-        date: new Date().toLocaleDateString('hi-IN')
+        date: new Date().toLocaleDateString('hi-IN'),
+        isVIP: !isAdmin && isUserPremium // Auto tag comment as VIP premium member!
       });
       setCmtText(''); setReplyTo(null);
       loadComments(readingStory.id);
@@ -293,7 +296,7 @@ export default function Home() {
 
   const clearForm = () => { setTitle(''); setText(''); setPoster(''); setAudio(''); setPrice('0'); setStoryLang('hindi'); setStoryCat('अन्य'); setEditId(null); };
 
-  // 🖼️ canvas jpeg converter for HEIC and PNG files
+  // 🖼️ Canvas Compressor (Supports HEIC / Custom images automatically)
   const convertToJpegBlob = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -342,7 +345,6 @@ export default function Home() {
       let fileName = file.name || (kind === 'poster' ? 'image.jpg' : 'audio.mp3');
 
       if (kind === 'poster') {
-        // iPhone standard HEIC/PNG direct to Canvas conversion
         if (isIos || fileName.match(/\.(heic|png|webp)$/i)) {
           try {
             uploadBlob = await convertToJpegBlob(file);
@@ -352,13 +354,11 @@ export default function Home() {
           }
         }
       } else {
-        // Audio conversion only for iOS sandbox compatibility
         if (isIos || !file.type || file.type === 'application/octet-stream') {
           let detectType = file.type || 'audio/mpeg';
           if (fileName.endsWith('.opus')) detectType = 'audio/ogg';
           uploadBlob = new Blob([file], { type: detectType });
         }
-        // Force safe clean audio filename
         const cleanExt = fileName.includes('.') ? fileName.split('.').pop() : 'mp3';
         fileName = `saaya_audio_${Date.now()}.${cleanExt}`;
       }
@@ -960,11 +960,41 @@ export default function Home() {
 
               {readingStory.poster && (
                 <div style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', marginBottom: '15px', border: '2px solid #6b4a12' }}>
-                  <img src={readingStory.poster} alt={readingStory.title} style={{ width: '100%', display: 'block', filter: isUnlocked(readingStory) ? 'none' : 'blur(6px)' }} />
+                  {/* Remove blur only if unlocked OR it has audio file to play teaser */}
+                  <img src={readingStory.poster} alt={readingStory.title} style={{ width: '100%', display: 'block', filter: (isUnlocked(readingStory) || readingStory.audio) ? 'none' : 'blur(8px)' }} />
                 </div>
               )}
               <h1 style={{ color: '#ff8822', margin: '0 0 5px', fontSize: '1.6rem', textAlign: 'center', fontFamily: 'Georgia, serif', textShadow: '0 0 15px rgba(255,120,0,0.5)' }}>{readingStory.title}</h1>
               <p style={{ color: '#8a6a4a', textAlign: 'center', margin: '0 0 15px', fontSize: '0.85rem' }}>👁️ {formatViews((readingStory.views || 0) + 1)} बार देखी गई{readingStory.fearCount ? ' • 😱 ' + fearPct(readingStory) + '% लोगों को डर लगा' : ''}</p>
+
+              {/* 🎧 sUSPENSE HOOK: 45s Free Teaser Play on Locked Stories */}
+              {!isUnlocked(readingStory) && readingStory.audio && (
+                <div className={playing ? 'playing' : ''} style={{ backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: '12px', padding: '20px', marginBottom: '22px', border: '1px dashed #ff6600', textAlign: 'center' }}>
+                  <audio ref={audioRef} src={readingStory.audio} preload="metadata" playsInline
+                    onTimeUpdate={() => {
+                      const a = audioRef.current;
+                      if (!a) return;
+                      setCurTime(a.currentTime);
+                      // 🛑 Teaser Limit: Stop locked users at 45 seconds to trigger buy
+                      if (a.currentTime >= 45) {
+                        a.pause();
+                        setPlaying(false);
+                        a.currentTime = 0;
+                        alert("😱 रोमांचक मोड़! आगे क्या हुआ? जानने के लिए कहानी अनलॉक करें!");
+                      }
+                    }}
+                    onLoadedMetadata={() => setDuration(audioRef.current ? audioRef.current.duration : 0)}
+                    onEnded={() => setPlaying(false)} />
+                  <p style={{ color: '#ffcc44', margin: '0 0 10px', fontWeight: 'bold', fontSize: '0.9rem' }}>🎧 45-सेकंड फ्री टीज़र (सुनकर देखें):</p>
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: '5px', height: '32px', marginBottom: '14px' }}>
+                    <div className="vbar b1" style={{ height: '10px' }}></div><div className="vbar b2" style={{ height: '18px' }}></div>
+                    <div className="vbar b3" style={{ height: '14px' }}></div><div className="vbar b4" style={{ height: '22px' }}></div>
+                    <div className="vbar b5" style={{ height: '9px' }}></div>
+                  </div>
+                  <button onClick={togglePlay} style={{ backgroundColor: '#ff6600', color: 'white', border: 'none', borderRadius: '50%', width: '64px', height: '64px', fontSize: '1.5rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,102,0,0.6)' }}>{playing ? '⏸' : '▶'}</button>
+                  <p style={{ color: '#8a6a4a', marginTop: '10px', fontSize: '0.78rem' }}>जैसे ही रोमांच चरम पर पहुंचेगा, ऑडियो रुक जाएगा 🎃</p>
+                </div>
+              )}
 
               {!isUnlocked(readingStory) && (
                 <div style={{ textAlign: 'center', padding: '15px 10px' }}>
@@ -1054,7 +1084,13 @@ export default function Home() {
                       {comments.filter(c => !c.parentId).map(c => (
                         <div key={c.id} style={{ backgroundColor: '#14100a', borderRadius: '10px', padding: '12px', marginBottom: '10px', border: c.name.includes('👑') ? '1px solid #ff6600' : '1px solid #2a2015' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ color: c.name.includes('👑') ? '#ff8822' : '#4caf50', fontSize: '0.85rem', fontWeight: 'bold' }}>{c.name}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ color: c.name.includes('👑') ? '#ff8822' : '#4caf50', fontSize: '0.85rem', fontWeight: 'bold' }}>{c.name}</span>
+                              {/* 👑 VIP Premium Golden Badge */}
+                              {c.isVIP && (
+                                <span style={{ background: 'linear-gradient(90deg, #ffaa00, #ff6600)', color: '#000', padding: '2px 7px', borderRadius: '10px', fontSize: '0.62rem', fontWeight: 'bold', display: 'inline-block', boxShadow: '0 0 8px rgba(255,170,0,0.5)' }}>👑 VIP MEMBER</span>
+                              )}
+                            </div>
                             <span style={{ color: '#555', fontSize: '0.7rem' }}>{c.date}</span>
                           </div>
                           <p style={{ color: '#ddd', margin: '6px 0', fontSize: '0.9rem', lineHeight: '1.6', fontFamily: 'sans-serif' }}>{c.text}</p>
@@ -1065,8 +1101,13 @@ export default function Home() {
 
                           {comments.filter(r => r.parentId === c.id).map(r => (
                             <div key={r.id} style={{ backgroundColor: '#0d0a06', borderRadius: '8px', padding: '10px', marginTop: '8px', marginLeft: '15px', borderLeft: '2px solid ' + (r.name.includes('👑') ? '#ff6600' : '#3a3020') }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <span style={{ color: r.name.includes('👑') ? '#ff8822' : '#4caf50', fontSize: '0.8rem', fontWeight: 'bold' }}>{r.name}</span>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{ color: r.name.includes('👑') ? '#ff8822' : '#4caf50', fontSize: '0.8rem', fontWeight: 'bold' }}>{r.name}</span>
+                                  {r.isVIP && (
+                                    <span style={{ background: 'linear-gradient(90deg, #ffaa00, #ff6600)', color: '#000', padding: '1px 5px', borderRadius: '8px', fontSize: '0.58rem', fontWeight: 'bold' }}>👑 VIP</span>
+                                  )}
+                                </div>
                                 <span style={{ color: '#555', fontSize: '0.65rem' }}>{r.date}</span>
                               </div>
                               <p style={{ color: '#ccc', margin: '5px 0', fontSize: '0.85rem', lineHeight: '1.5', fontFamily: 'sans-serif' }}>{r.text}</p>
@@ -1116,13 +1157,11 @@ export default function Home() {
               </div>
               
               <label style={{ color: '#ffaa55', fontSize: '0.85rem' }}>🖼️ Poster Upload Karo:</label>
-              {/* Universal Image Selector (All OS Friendly) */}
               <input type="file" accept="image/*" onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0], 'poster')} style={{ ...inputStyle, padding: '8px' }} />
               {uploading === 'poster' && <p style={{ color: '#ffaa00', margin: '0 0 10px' }}>⏳ Poster upload ho raha hai...</p>}
               {poster && <img src={poster} style={{ width: '80px', borderRadius: '8px', marginBottom: '10px' }} />}
               
               <label style={{ color: '#ffaa55', fontSize: '0.85rem' }}>🔊 Audio Upload Karo (WhatsApp/M4A/MP3):</label>
-              {/* Universal Audio Input with Bypassed File types for iPhone / PC / Android */}
               <input 
                 type="file" 
                 accept="audio/*,video/*,application/octet-stream,application/x-dec-event,.mp3,.m4a,.aac,.wav,.ogg,.opus,.caf,.amr" 
