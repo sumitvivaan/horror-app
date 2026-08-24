@@ -91,6 +91,23 @@ export default function Home() {
   const [storyCat, setStoryCat] = useState('अन्य');
   const [hasPass, setHasPass] = useState(false);
   const [showPushBanner, setShowPushBanner] = useState(false);
+    const [showScareAlert, setShowScareAlert] = useState(false);
+
+  useEffect(() => {
+    try {
+      const lastScare = parseInt(localStorage.getItem('lastScareAlert') || '0');
+      // हर 4 घंटे में सिर्फ 1 बार दिखेगा, बार-बार परेशान नहीं करेगा
+      if (Date.now() - lastScare > 4 * 3600 * 1000) {
+        const scTimer = setTimeout(() => setShowScareAlert(true), 1200);
+        return () => clearTimeout(scTimer);
+      }
+    } catch (e) {}
+  }, []);
+
+  const closeScareAlert = () => {
+    setShowScareAlert(false);
+    try { localStorage.setItem('lastScareAlert', String(Date.now())); } catch (e) {}
+  };
   
   // ⚙️ Diagnosis Tools
   const [debugSW, setDebugSW] = useState("Checking...");
@@ -828,6 +845,31 @@ export default function Home() {
     <div style={{ backgroundColor: C.bg, color: C.text, minHeight: '100vh', fontFamily: 'sans-serif', transition: 'background-color 0.4s, color 0.4s' }}>
       <Head><title>साया - खौफ़ की हिंदी कहानियाँ 👻</title></Head>
       <style>{css}</style>
+            {/* 💀 HORROR WARNING ALERT POPUP */}
+      {showScareAlert && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 2000, backgroundColor: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '20px' }} onClick={closeScareAlert}>
+          <style>{`
+            @keyframes scSlideDown { from{transform:translateY(-120%); opacity:0;} to{transform:translateY(0); opacity:1;} }
+            @keyframes scSkull { 0%,100%{transform:rotate(-10deg) scale(1);} 50%{transform:rotate(10deg) scale(1.15);} }
+            @keyframes scGlowRed { 0%,100%{box-shadow:0 0 20px rgba(255,40,0,0.4), inset 0 0 25px rgba(0,0,0,0.9);} 50%{box-shadow:0 0 45px rgba(255,60,0,0.8), inset 0 0 25px rgba(0,0,0,0.9);} }
+            .scBox { animation: scSlideDown 0.5s cubic-bezier(0.2,0.9,0.3,1.2) both, scGlowRed 2s infinite 0.5s; }
+            .scSkull { display:inline-block; animation: scSkull 1.2s infinite; }
+          `}</style>
+          <div className="scBox" onClick={(e) => e.stopPropagation()} style={{ marginTop: '40px', maxWidth: '360px', width: '100%', background: 'linear-gradient(180deg, #1a0505, #0d0202)', border: '2px solid #8b1a00', borderRadius: '16px', padding: '20px', textAlign: 'center' }}>
+            <span className="scSkull" style={{ fontSize: '2.5rem' }}>💀</span>
+            <h2 style={{ color: '#ff4422', margin: '8px 0 6px', fontSize: '1.3rem', fontFamily: 'Georgia, serif', letterSpacing: '2px' }}>⚠️ चेतावनी!</h2>
+            <p style={{ color: '#e8d5b8', fontSize: '0.92rem', lineHeight: '1.7', margin: '0 0 16px', fontFamily: 'Georgia, serif' }}>
+              रात हो चुकी है... <b style={{ color: '#ff8822' }}>साया</b> जाग गया है। 👻<br />
+              क्या तुम अकेले कहानियाँ सुनने की हिम्मत रखते हो?
+            </p>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+              <button onClick={closeScareAlert} style={{ flex: 1, padding: '12px', backgroundColor: '#ff6600', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 0 15px rgba(255,102,0,0.5)' }}>😈 हाँ, हिम्मत है!</button>
+              <button onClick={closeScareAlert} style={{ flex: 1, padding: '12px', backgroundColor: '#222', color: '#999', border: '1px solid #444', borderRadius: '10px', fontSize: '0.95rem', cursor: 'pointer' }}>😨 बंद करो</button>
+            </div>
+            <p style={{ color: '#554433', fontSize: '0.7rem', margin: '12px 0 0' }}>🎧 हेडफ़ोन लगाकर सुनना... अकेले मत सुनना</p>
+          </div>
+        </div>
+      )}
 
       {/* 🔔 Horror Notification Subscription Request Banner */}
       {showPushBanner && (
