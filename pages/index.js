@@ -29,6 +29,11 @@ function formatViews(n) {
 
 const isNew = (s) => s.createdAt && (Date.now() - s.createdAt) < 7 * 24 * 3600 * 1000;
 
+// 🛡️ UNIVERSAL SAFETY HELPERS (iOS/Android/PC sab jagah safe)
+const hasNotifSupport = () => {
+  try { return typeof window !== 'undefined' && 'Notification' in window && 'PushManager' in window && 'serviceWorker' in navigator; } catch (e) { return false; }
+};
+
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
@@ -91,25 +96,7 @@ export default function Home() {
   const [storyCat, setStoryCat] = useState('अन्य');
   const [hasPass, setHasPass] = useState(false);
   const [showPushBanner, setShowPushBanner] = useState(false);
-    const [showScareAlert, setShowScareAlert] = useState(false);
-
-  useEffect(() => {
-    try {
-      const lastScare = parseInt(localStorage.getItem('lastScareAlert') || '0');
-      // हर 4 घंटे में सिर्फ 1 बार दिखेगा, बार-बार परेशान नहीं करेगा
-      if (Date.now() - lastScare > 4 * 3600 * 1000) {
-        const scTimer = setTimeout(() => setShowScareAlert(true), 1200);
-        return () => clearTimeout(scTimer);
-      }
-    } catch (e) {}
-  }, []);
-
-  const closeScareAlert = () => {
-    setShowScareAlert(false);
-    try { localStorage.setItem('lastScareAlert', String(Date.now())); } catch (e) {}
-  };
-  
-  // ⚙️ Diagnosis Tools
+  const [showWelcome, setShowWelcome] = useState(false);
   const [debugSW, setDebugSW] = useState("Checking...");
   const [debugPermission, setDebugPermission] = useState("Checking...");
   const [debugTokenCount, setDebugPermissionCount] = useState(0);
@@ -126,27 +113,39 @@ export default function Home() {
     try { setHasPass(localStorage.getItem('premiumPass') === 'yes'); } catch (e) {}
     try { setFearVotes(JSON.parse(localStorage.getItem('fearVotes') || '{}')); } catch (e) {}
     try { setSharesCnt(JSON.parse(localStorage.getItem('sharesCnt') || '{}')); } catch (e) {}
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) setTheme(savedTheme);
+    try {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) setTheme(savedTheme);
+    } catch (e) {}
     const s = document.createElement('script');
     s.src = 'https://checkout.razorpay.com/v1/checkout.js';
     document.body.appendChild(s);
-    
-    if (typeof window !== 'undefined') {
-      setDebugPermission(Notification.permission);
+
+    // 👻 Welcome toast (sab devices par safe)
+    const wTimer = setTimeout(() => setShowWelcome(true), 1500);
+    const wHide = setTimeout(() => setShowWelcome(false), 8000);
+
+    // 🛡️ iOS-SAFE Notification setup: pehle support check, phir hi use
+    const notifOK = hasNotifSupport();
+    if (notifOK) {
+      try { setDebugPermission(Notification.permission); } catch (e) { setDebugPermission("unknown"); }
+    } else {
+      setDebugPermission("Not supported here (iOS Safari me Home Screen se kholo) ℹ️");
     }
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').then((reg) => {
-        setDebugSW("Active (चालू है) ✅");
-        if (Notification.permission === 'default') {
-          setTimeout(() => { setShowPushBanner(true); }, 3500);
-        }
+        setDebugSW("Active ✅");
+        try {
+          if (notifOK && Notification.permission === 'default') {
+            setTimeout(() => { setShowPushBanner(true); }, 3500);
+          }
+        } catch (e) {}
       }).catch((err) => {
-        setDebugSW("Failed (बंद है): " + err.message);
+        setDebugSW("Failed: " + err.message);
       });
     } else {
-      setDebugSW("Not supported by browser ❌");
+      setDebugSW("Not supported ❌");
     }
 
     const fetchSubCount = async () => {
@@ -157,19 +156,21 @@ export default function Home() {
     };
     fetchSubCount();
 
-    const params = new URLSearchParams(window.location.search);
-    const sId = params.get('storyId');
-    if (sId) {
-      const fetchDirectStory = async () => {
-        try {
-          const q = query(collection(db, "stories"));
-          const snap = await getDocs(q);
-          const matched = snap.docs.map(d => ({ id: d.id, ...d.data() })).find(s => s.id === sId);
-          if (matched) openStory(matched);
-        } catch (err) {}
-      };
-      fetchDirectStory();
-    }
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const sId = params.get('storyId');
+      if (sId) {
+        const fetchDirectStory = async () => {
+          try {
+            const q = query(collection(db, "stories"));
+            const snap = await getDocs(q);
+            const matched = snap.docs.map(d => ({ id: d.id, ...d.data() })).find(st => st.id === sId);
+            if (matched) openStory(matched);
+          } catch (err) {}
+        };
+        fetchDirectStory();
+      }
+    } catch (e) {}
 
     const onPop = () => {
       if (readingRef.current) {
@@ -199,35 +200,33 @@ export default function Home() {
       setOfferLeft(h + 'घं ' + m + 'मि ' + sc + 'से');
     }, 1000);
     const ht = setInterval(() => setHeroIdx(i => i + 1), 4000);
-    return () => { clearInterval(t); clearInterval(ht); window.removeEventListener('popstate', onPop); };
+    return () => { clearInterval(t); clearInterval(ht); clearTimeout(wTimer); clearTimeout(wHide); window.removeEventListener('popstate', onPop); };
   }, []);
 
+  // 🛡️ iOS-SAFE Push Subscribe
   const subscribePushNotification = async () => {
     setShowPushBanner(false);
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      alert("⚠️ Browser notifications support nahi karta.");
+    if (!hasNotifSupport()) {
+      alert("📲 iPhone users: Pehle app ko Home Screen par Add karo (Share → Add to Home Screen), phir wahan se kholkar notification chalu karo!");
       return;
     }
     try {
       const permission = await Notification.requestPermission();
       setDebugPermission(permission);
       if (permission !== 'granted') {
-        alert("🔒 Alerts band hain. Browser settings se manually allow karein.");
+        alert("🔒 Notification allow nahi hua. Browser settings se allow kar sakte ho.");
         return;
       }
-
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
       });
-
       await addDoc(collection(db, "push_subscriptions"), {
         subscription: JSON.parse(JSON.stringify(sub)),
         createdAt: Date.now()
       });
-      alert("🎉 बधाई हो! खौफ़ के लाइव अलर्ट चालू हो गए हैं! 👻");
-      
+      alert("🎉 बधाई हो! खौफ़ के लाइव अलर्ट चालू हो गए! 👻");
       const snap = await getDocs(collection(db, "push_subscriptions"));
       setDebugPermissionCount(snap.docs.length);
     } catch (e) {
@@ -236,8 +235,8 @@ export default function Home() {
   };
 
   const sendTestNotification = async () => {
-    const tName = prompt("Notification का टाइटल लिखो:", "साया 👻");
-    const tMsg = prompt("मैसेज लिखो:", "सुनसान हवेली का दरवाज़ा खुल गया है... 💀");
+    const tName = prompt("Notification का टाइटल:", "साया 👻");
+    const tMsg = prompt("मैसेज:", "सुनसान हवेली का दरवाज़ा खुल गया है... 💀");
     if (!tName || !tMsg) return;
     try {
       const res = await fetch('/api/push', {
@@ -247,12 +246,12 @@ export default function Home() {
       });
       const data = await res.json();
       if (data.success) {
-        alert(`✅ सफलता! ${data.sentCount} यूज़र्स को नोटिफिकेशन भेज दिया गया!`);
+        alert(`✅ ${data.sentCount} users ko notification bhej diya!`);
       } else {
-        alert("❌ फेल हुआ: " + data.error);
+        alert("ℹ️ " + (data.message || data.error || "Koi subscriber nahi mila."));
       }
     } catch (err) {
-      alert("❌ एरर: " + err.message);
+      alert("❌ Error: " + err.message);
     }
   };
 
@@ -290,19 +289,17 @@ export default function Home() {
       await deleteDoc(doc(db, "submissions", sub.id));
       setPendingSubs(prev => prev.filter(p => p.id !== sub.id));
       alert('✅ Approve! "' + sub.title + '" ab public hai!');
-      
       try {
         await fetch('/api/push', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             title: `🚨 नई कहानी: ${sub.title} 👻`,
-            message: `लेखक ${sub.writer} की एक नई कहानी पब्लिश हुई है। क्या अकेले सुन पाओगे? 💀`,
+            message: `लेखक ${sub.writer} की नई कहानी आई है। क्या अकेले सुन पाओगे? 💀`,
             storyId: docRef.id
           })
         });
       } catch (err) {}
-
       loadStories();
     } catch (e) { alert('Error: ' + e.message); }
   };
@@ -391,7 +388,7 @@ export default function Home() {
   const toggleTheme = () => {
     const nt = theme === 'dark' ? 'light' : 'dark';
     setTheme(nt);
-    localStorage.setItem('theme', nt);
+    try { localStorage.setItem('theme', nt); } catch (e) {}
   };
 
   const loadStories = async () => {
@@ -469,12 +466,10 @@ export default function Home() {
 
   const uploadFile = async (file, kind) => {
     if (!file) return;
-
     if (file.size === 0) {
-      alert("⚠️ Error: File data 0 bytes hai! (iCloud files ko pehle download kar lijiye).");
+      alert("⚠️ Error: File 0 bytes hai! (iCloud files pehle download karo)");
       return;
     }
-
     setUploading(kind);
     try {
       const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent);
@@ -506,30 +501,24 @@ export default function Home() {
       fd.append('upload_preset', UPLOAD_PRESET);
 
       const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`;
-      
-      const res = await fetch(uploadUrl, { 
-        method: 'POST', 
-        body: fd 
-      });
-      
+      const res = await fetch(uploadUrl, { method: 'POST', body: fd });
       const responseText = await res.text();
       let data;
       try {
         data = JSON.parse(responseText);
       } catch (e) {
-        throw new Error("Cloudinary response failed parsing: " + responseText.substring(0, 100));
+        throw new Error("Server response error: " + responseText.substring(0, 100));
       }
-      
       if (res.ok && data.secure_url) {
-        if (kind === 'poster') setPoster(data.secure_url); 
+        if (kind === 'poster') setPoster(data.secure_url);
         else setAudio(data.secure_url);
         alert((kind === 'poster' ? 'Poster' : 'Audio') + ' upload ho gaya! ✅');
-      } else { 
+      } else {
         const errMsg = data.error && data.error.message ? data.error.message : responseText;
-        alert('❌ Error: ' + errMsg); 
+        alert('❌ Error: ' + errMsg);
       }
-    } catch (e) { 
-      alert('❌ Upload Error: ' + e.message); 
+    } catch (e) {
+      alert('❌ Upload Error: ' + e.message);
     }
     setUploading('');
   };
@@ -544,20 +533,17 @@ export default function Home() {
       } else {
         const docRef = await addDoc(collection(db, "stories"), { title, text: text || '', poster: poster || '', audio: audio || '', price: parseInt(price) || 0, lang: storyLang, cat: storyCat, views: 0, fearTotal: 0, fearCount: 0, createdAt: Date.now(), date: new Date().toLocaleDateString('hi-IN') });
         alert('Publish ho gayi! 🎃');
-
         try {
           await fetch('/api/push', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               title: `🚨 नई कहानी: ${title} 👻`,
-              message: `खौफ़ का लाइव अलर्ट! नई डरावनी कहानी अभी पब्लिश हुई है, क्या अकेले सुन पाओगे? 💀`,
+              message: `नई डरावनी कहानी आई है! क्या अकेले सुन पाओगे? 💀`,
               storyId: docRef.id
             })
           });
-        } catch (pushErr) {
-          console.error("Auto notification trigger failed: ", pushErr);
-        }
+        } catch (pushErr) {}
       }
       clearForm(); loadStories();
     } catch (e) { alert('Error: ' + e.message); }
@@ -581,7 +567,8 @@ export default function Home() {
 
   const doUnlock = (id) => {
     const nu = [...unlocked, id];
-    setUnlocked(nu); localStorage.setItem('unlocked', JSON.stringify(nu));
+    setUnlocked(nu);
+    try { localStorage.setItem('unlocked', JSON.stringify(nu)); } catch (e) {}
   };
 
   const buyPass = () => {
@@ -591,8 +578,8 @@ export default function Home() {
       name: 'साया - Premium Pass 👑', description: 'सभी कहानियाँ हमेशा के लिए UNLOCK',
       handler: function () {
         setHasPass(true);
-        localStorage.setItem('premiumPass', 'yes');
-        alert('👑 बधाई हो! आप अब PREMIUM MEMBER हो! सभी कहानियाँ unlock! 🎉');
+        try { localStorage.setItem('premiumPass', 'yes'); } catch (e) {}
+        alert('👑 बधाई हो! आप PREMIUM MEMBER हो! 🎉');
       },
       theme: { color: '#ffaa00' }
     });
@@ -600,7 +587,7 @@ export default function Home() {
   };
 
   const payStory = (story) => {
-    if (RAZORPAY_KEY.includes('YAHAN')) return alert('Razorpay Key abhi nahi dali gayi! Line 11 mein dalo.');
+    if (RAZORPAY_KEY.includes('YAHAN')) return alert('Razorpay Key abhi nahi dali gayi!');
     const rzp = new window.Razorpay({
       key: RAZORPAY_KEY, amount: story.price * 100, currency: 'INR',
       name: 'साया - खौफ़ की कहानियाँ', description: story.title,
@@ -615,8 +602,9 @@ export default function Home() {
     window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
     const cnt = (sharesCnt[story.id] || 0) + 1;
     const ns = { ...sharesCnt, [story.id]: cnt };
-    setSharesCnt(ns); localStorage.setItem('sharesCnt', JSON.stringify(ns));
-    if (cnt >= 5) { doUnlock(story.id); alert('🎉 5 shares पूरे! कहानी FREE unlock ho gayi!'); }
+    setSharesCnt(ns);
+    try { localStorage.setItem('sharesCnt', JSON.stringify(ns)); } catch (e) {}
+    if (cnt >= 5) { doUnlock(story.id); alert('🎉 5 shares पूरे! कहानी FREE unlock!'); }
   };
 
   const rateFear = async (story, n) => {
@@ -624,7 +612,8 @@ export default function Home() {
     try {
       await updateDoc(doc(db, "stories", story.id), { fearTotal: increment(n), fearCount: increment(1) });
       const nv = { ...fearVotes, [story.id]: n };
-      setFearVotes(nv); localStorage.setItem('fearVotes', JSON.stringify(nv));
+      setFearVotes(nv);
+      try { localStorage.setItem('fearVotes', JSON.stringify(nv)); } catch (e) {}
       const upd = s => ({ ...s, fearTotal: (s.fearTotal || 0) + n, fearCount: (s.fearCount || 0) + 1 });
       setStories(prev => prev.map(s => s.id === story.id ? upd(s) : s));
       setReadingStory(prev => prev && prev.id === story.id ? upd(prev) : prev);
@@ -634,10 +623,11 @@ export default function Home() {
   const fearPct = (s) => s.fearCount ? Math.round(((s.fearTotal || 0) / s.fearCount / 5) * 100) : 0;
 
   const spinWheel = () => {
-    const last = parseInt(localStorage.getItem('lastSpin') || '0');
+    let last = 0;
+    try { last = parseInt(localStorage.getItem('lastSpin') || '0'); } catch (e) {}
     if (Date.now() - last < 7 * 24 * 3600 * 1000) {
       const days = Math.ceil((7 * 24 * 3600 * 1000 - (Date.now() - last)) / (24 * 3600 * 1000));
-      setWheelMsg('⏳ Is hafte ka spin ho chuka! ' + days + ' din baad wapas aao 🎰');
+      setWheelMsg('⏳ Is hafte ka spin ho chuka! ' + days + ' din baad aao 🎰');
       return;
     }
     if (spinning) return;
@@ -647,15 +637,15 @@ export default function Home() {
     setWheelDeg(base + 360 * 6 + (360 - (idx * 60 + 30)));
     setTimeout(() => {
       setSpinning(false);
-      localStorage.setItem('lastSpin', String(Date.now()));
+      try { localStorage.setItem('lastSpin', String(Date.now())); } catch (e) {}
       if (idx === 0 || idx === 2) {
         const lockedPaid = stories.filter(s => s.price > 0 && !unlocked.includes(s.id));
-        if (lockedPaid.length === 0) { setWheelMsg('🎉 Jeet gaye! Par saari kahaniyan pehle se unlocked hain!'); return; }
+        if (lockedPaid.length === 0) { setWheelMsg('🎉 Jeet gaye! Par sab pehle se unlocked hai!'); return; }
         const w = lockedPaid[Math.floor(Math.random() * lockedPaid.length)];
         doUnlock(w.id);
-        setWheelMsg('🎉 बधाई हो! "' + w.title + '" FREE unlock ho gayi! 🎁');
+        setWheelMsg('🎉 बधाई हो! "' + w.title + '" FREE unlock! 🎁');
       } else {
-        setWheelMsg('😢 अगली बार किस्मत आज़माओ! (अगले हफ्ते फिर spin करना)');
+        setWheelMsg('😢 अगली बार किस्मत आज़माओ!');
       }
     }, 4300);
   };
@@ -722,7 +712,7 @@ export default function Home() {
       ctx.fillStyle = '#8a6a4a'; ctx.font = '22px sans-serif';
       ctx.fillText(window.location.origin.replace('https://', ''), 360, 908);
       canvas.toBlob(async (blob) => {
-        if (!blob) return alert('Card ban nahi paya, dobara try karo!');
+        if (!blob) return alert('Card ban nahi paya!');
         const file = new File([blob], 'saaya-story.png', { type: 'image/png' });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           navigator.share({ files: [file], text: '👻 ' + story.title + ' - ' + window.location.origin }).catch(() => {});
@@ -731,7 +721,7 @@ export default function Home() {
           const a = document.createElement('a');
           a.href = url; a.download = 'saaya-story.png'; a.click();
           URL.revokeObjectURL(url);
-          alert('🖼️ Poster download ho gaya! Ab WhatsApp status par lagao!');
+          alert('🖼️ Poster download ho gaya!');
         }
       });
     } catch (e) { alert('Card error: ' + e.message); }
@@ -788,6 +778,10 @@ export default function Home() {
     @keyframes heroFade { from{opacity:0.4; transform:scale(1.04)} to{opacity:1; transform:scale(1)} }
     @keyframes shimmer { 0%{background-position:-400px 0} 100%{background-position:400px 0} }
     @keyframes pulseNew { 0%,100%{opacity:1} 50%{opacity:0.6} }
+    @keyframes wlSlide { from{transform:translateY(-130%); opacity:0;} to{transform:translateY(0); opacity:1;} }
+    @keyframes wlGhost { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-5px);} }
+    .wlBox { animation: wlSlide 0.6s cubic-bezier(0.2,0.9,0.3,1.1) both; }
+    .wlGhost { display:inline-block; animation: wlGhost 2s ease-in-out infinite; }
     .vbar { width:5px; background:#ff6600; border-radius:3px; }
     .playing .b1 { animation: bounce1 0.7s infinite; } .playing .b2 { animation: bounce2 0.5s infinite; }
     .playing .b3 { animation: bounce3 0.8s infinite; } .playing .b4 { animation: bounce2 0.6s infinite; }
@@ -845,38 +839,28 @@ export default function Home() {
     <div style={{ backgroundColor: C.bg, color: C.text, minHeight: '100vh', fontFamily: 'sans-serif', transition: 'background-color 0.4s, color 0.4s' }}>
       <Head><title>साया - खौफ़ की हिंदी कहानियाँ 👻</title></Head>
       <style>{css}</style>
-            {/* 💀 HORROR WARNING ALERT POPUP */}
-      {showScareAlert && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 2000, backgroundColor: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '20px' }} onClick={closeScareAlert}>
-          <style>{`
-            @keyframes scSlideDown { from{transform:translateY(-120%); opacity:0;} to{transform:translateY(0); opacity:1;} }
-            @keyframes scSkull { 0%,100%{transform:rotate(-10deg) scale(1);} 50%{transform:rotate(10deg) scale(1.15);} }
-            @keyframes scGlowRed { 0%,100%{box-shadow:0 0 20px rgba(255,40,0,0.4), inset 0 0 25px rgba(0,0,0,0.9);} 50%{box-shadow:0 0 45px rgba(255,60,0,0.8), inset 0 0 25px rgba(0,0,0,0.9);} }
-            .scBox { animation: scSlideDown 0.5s cubic-bezier(0.2,0.9,0.3,1.2) both, scGlowRed 2s infinite 0.5s; }
-            .scSkull { display:inline-block; animation: scSkull 1.2s infinite; }
-          `}</style>
-          <div className="scBox" onClick={(e) => e.stopPropagation()} style={{ marginTop: '40px', maxWidth: '360px', width: '100%', background: 'linear-gradient(180deg, #1a0505, #0d0202)', border: '2px solid #8b1a00', borderRadius: '16px', padding: '20px', textAlign: 'center' }}>
-            <span className="scSkull" style={{ fontSize: '2.5rem' }}>💀</span>
-            <h2 style={{ color: '#ff4422', margin: '8px 0 6px', fontSize: '1.3rem', fontFamily: 'Georgia, serif', letterSpacing: '2px' }}>⚠️ चेतावनी!</h2>
-            <p style={{ color: '#e8d5b8', fontSize: '0.92rem', lineHeight: '1.7', margin: '0 0 16px', fontFamily: 'Georgia, serif' }}>
-              रात हो चुकी है... <b style={{ color: '#ff8822' }}>साया</b> जाग गया है। 👻<br />
-              क्या तुम अकेले कहानियाँ सुनने की हिम्मत रखते हो?
-            </p>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-              <button onClick={closeScareAlert} style={{ flex: 1, padding: '12px', backgroundColor: '#ff6600', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 0 15px rgba(255,102,0,0.5)' }}>😈 हाँ, हिम्मत है!</button>
-              <button onClick={closeScareAlert} style={{ flex: 1, padding: '12px', backgroundColor: '#222', color: '#999', border: '1px solid #444', borderRadius: '10px', fontSize: '0.95rem', cursor: 'pointer' }}>😨 बंद करो</button>
+
+      {/* 👻 SPOOKY WELCOME TOAST */}
+      {showWelcome && (
+        <div style={{ position: 'fixed', top: '15px', left: '50%', transform: 'translateX(-50%)', zIndex: 2000, width: '92%', maxWidth: '400px' }}>
+          <div className="wlBox" style={{ background: 'linear-gradient(135deg, #1a0d05, #2a1205)', border: '1px solid #ff6600', borderRadius: '14px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 6px 25px rgba(255,102,0,0.35)' }}>
+            <span className="wlGhost" style={{ fontSize: '1.8rem' }}>👻</span>
+            <div style={{ flex: 1 }}>
+              <p style={{ color: '#ffaa55', margin: 0, fontSize: '0.85rem', fontWeight: 'bold', fontFamily: 'Georgia, serif' }}>साया में आपका स्वागत है...</p>
+              <p style={{ color: '#c9a97a', margin: '2px 0 0', fontSize: '0.75rem' }}>आज की नई डरावनी कहानियाँ तैयार हैं 🌙</p>
             </div>
-            <p style={{ color: '#554433', fontSize: '0.7rem', margin: '12px 0 0' }}>🎧 हेडफ़ोन लगाकर सुनना... अकेले मत सुनना</p>
+            <button onClick={() => setShowWelcome(false)} style={{ backgroundColor: '#ff6600', color: '#fff', border: 'none', borderRadius: '15px', padding: '8px 14px', fontSize: '0.78rem', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>🎧 सुनाओ!</button>
+            <button onClick={() => setShowWelcome(false)} style={{ backgroundColor: 'transparent', color: '#886644', border: 'none', fontSize: '1rem', cursor: 'pointer', padding: '0 2px' }}>✕</button>
           </div>
         </div>
       )}
 
-      {/* 🔔 Horror Notification Subscription Request Banner */}
+      {/* 🔔 Push Banner (sirf supported browsers me dikhega) */}
       {showPushBanner && (
         <div style={{ background: 'linear-gradient(90deg, #ff6600, #990000)', color: '#fff', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1000, position: 'relative', boxShadow: '0 4px 15px rgba(0,0,0,0.5)', fontFamily: 'Georgia, serif' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '1.5rem' }}>💀</span>
-            <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 'bold' }}>आधी रात को नई खौफ़नाक कहानियों के लाइव अलर्ट चाहिए? अभी चालू करें!</p>
+            <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 'bold' }}>नई खौफ़नाक कहानियों के लाइव अलर्ट चाहिए?</p>
           </div>
           <div style={{ display: 'flex', gap: '10px' }}>
             <button onClick={subscribePushNotification} style={{ backgroundColor: '#fff', color: '#000', border: 'none', borderRadius: '15px', padding: '6px 14px', fontSize: '0.78rem', fontWeight: 'bold', cursor: 'pointer' }}>हाँ, चालू करो! ✅</button>
@@ -1049,16 +1033,13 @@ export default function Home() {
             </div>
             <button onClick={() => { setShowAdminMenu(false); setShowPanel(true); }} style={{ width: '100%', padding: '15px', marginBottom: '10px', backgroundColor: '#ff6600', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: 'bold', textAlign: 'left' }}>📝 Nayi Story Add Karo</button>
             <button onClick={() => { setShowAdminMenu(false); loadPending(); }} style={{ width: '100%', padding: '15px', marginBottom: '10px', backgroundColor: '#ffaa00', color: '#000', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: 'bold', textAlign: 'left' }}>⏳ Pending Stories (Review)</button>
-            {/* Manual push notification diagnostic button */}
-            <button onClick={() => { setShowAdminMenu(false); sendTestNotification(); }} style={{ width: '100%', padding: '15px', marginBottom: '10px', backgroundColor: '#5c00a3', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: 'bold', textAlign: 'left' }}>📢 Push Notification Bhejo (Manual)</button>
+            <button onClick={() => { setShowAdminMenu(false); sendTestNotification(); }} style={{ width: '100%', padding: '15px', marginBottom: '10px', backgroundColor: '#5c00a3', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: 'bold', textAlign: 'left' }}>📢 Push Notification Bhejo</button>
             <button onClick={async () => { await signOut(auth); setShowAdminMenu(false); alert('Logout ho gaye! 👋'); }} style={{ width: '100%', padding: '15px', backgroundColor: '#8b0000', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: 'bold', textAlign: 'left' }}>🚪 Logout</button>
-            
-            {/* Live Diagnostics Dashboard */}
             <div style={{ marginTop: '15px', padding: '12px', borderRadius: '8px', backgroundColor: '#000', fontSize: '0.78rem', color: '#aaa', border: '1px solid #333', textAlign: 'left' }}>
-               <p style={{ margin: '0 0 5px', color: '#ffaa00', fontWeight: 'bold' }}>📡 Notification Diagnostics:</p>
+               <p style={{ margin: '0 0 5px', color: '#ffaa00', fontWeight: 'bold' }}>📡 Notification Status:</p>
                <div>Service Worker: <span style={{ color: '#fff' }}>{debugSW}</span></div>
-               <div>Permission Status: <span style={{ color: '#fff' }}>{debugPermission}</span></div>
-               <div>Total Subscribers: <span style={{ color: '#00ff00', fontWeight: 'bold' }}>{debugTokenCount} users</span></div>
+               <div>Permission: <span style={{ color: '#fff' }}>{debugPermission}</span></div>
+               <div>Subscribers: <span style={{ color: '#00ff00', fontWeight: 'bold' }}>{debugTokenCount} users</span></div>
             </div>
           </div>
         </div>
@@ -1072,7 +1053,7 @@ export default function Home() {
             <input type="text" placeholder="आपका नाम (yahi publish hoga)" value={subName} onChange={(e) => setSubName(e.target.value)} style={inputStyle} />
             <input type="text" placeholder="कहानी का Title" value={subTitle} onChange={(e) => setSubTitle(e.target.value)} style={inputStyle} />
             <textarea placeholder="अपनी पूरी कहानी यहाँ लिखो... (kam se kam 100 akshar)" value={subText} onChange={(e) => setSubText(e.target.value)} rows="10" style={{ ...inputStyle, resize: 'vertical' }} />
-            <p style={{ color: '#666', fontSize: '0.75rem' }}>⚠️ Gandi bhasha/galat content wali stories REJECT ho jayengi. Kahani aapki khud ki likhi honi chahiye.</p>
+            <p style={{ color: '#666', fontSize: '0.75rem' }}>⚠️ Gandi bhasha/galat content wali stories REJECT ho jayengi.</p>
             <button onClick={submitUserStory} disabled={subSending} style={{ width: '100%', padding: '15px', backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '1.05rem', cursor: 'pointer', fontWeight: 'bold', opacity: subSending ? 0.5 : 1 }}>{subSending ? 'भेज रहे हैं...' : '📤 कहानी भेजो'}</button>
             <button onClick={() => setShowSubmit(false)} style={{ width: '100%', padding: '10px', marginTop: '10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>बंद करो</button>
           </div>
@@ -1129,7 +1110,7 @@ export default function Home() {
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', backgroundColor: '#1a1410', border: '3px solid #c9962e', borderRadius: '50%', width: '55px', height: '55px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '1.5rem' }}>👻</div>
             </div>
             <p style={{ color: '#8a6a4a', fontSize: '0.8rem' }}>🧡 नारंगी हिस्सा = 🎁 FREE कहानी</p>
-            <button onClick={spinWheel} disabled={spinning} style={{ ...orgBtn, padding: '14px 40px', fontSize: '1.15rem', opacity: spinning ? 0.5 : 1 }}>{spinning ? 'घूम रहा है...' : '🎡 घुमाओ!'}</button>
+            <button onClick={spinWheel} disabled={spinning} style={{ ...orgBtn, padding: '14px 40px', fontSize: '1.1rem', opacity: spinning ? 0.5 : 1 }}>{spinning ? 'घूम रहा है...' : '🎡 घुमाओ!'}</button>
             {wheelMsg && <p style={{ color: '#ffaa55', marginTop: '15px', fontSize: '0.95rem' }}>{wheelMsg}</p>}
             {!spinning && <p onClick={() => setShowWheel(false)} style={{ color: '#555', marginTop: '12px', fontSize: '0.8rem', cursor: 'pointer' }}>बंद करो ✕</p>}
           </div>
@@ -1166,7 +1147,6 @@ export default function Home() {
               <h1 style={{ color: '#ff8822', margin: '0 0 5px', fontSize: '1.6rem', textAlign: 'center', fontFamily: 'Georgia, serif', textShadow: '0 0 15px rgba(255,120,0,0.5)' }}>{readingStory.title}</h1>
               <p style={{ color: '#8a6a4a', textAlign: 'center', margin: '0 0 15px', fontSize: '0.85rem' }}>👁️ {formatViews((readingStory.views || 0) + 1)} बार देखी गई{readingStory.fearCount ? ' • 😱 ' + fearPct(readingStory) + '% लोगों को डर लगा' : ''}</p>
 
-              {/* 🎧 sUSPENSE HOOK: 45s Free Teaser Play on Locked Stories */}
               {!isUnlocked(readingStory) && readingStory.audio && (
                 <div className={playing ? 'playing' : ''} style={{ backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: '12px', padding: '20px', marginBottom: '22px', border: '1px dashed #ff6600', textAlign: 'center' }}>
                   <audio ref={audioRef} src={readingStory.audio} preload="metadata" playsInline
@@ -1174,7 +1154,7 @@ export default function Home() {
                       const a = audioRef.current;
                       if (!a) return;
                       setCurTime(a.currentTime);
-                      if (a.currentTime >= 45) { // 🛑 Block locked users at 45 seconds
+                      if (a.currentTime >= 45) {
                         a.pause();
                         setPlaying(false);
                         a.currentTime = 0;
@@ -1352,12 +1332,10 @@ export default function Home() {
                   <button key={ct} onClick={() => setStoryCat(ct)} style={{ padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: storyCat === ct ? '#ff6600' : '#0a0a0a', color: storyCat === ct ? '#fff' : '#777', border: '1px solid #444' }}>{ct}</button>
                 ))}
               </div>
-              
               <label style={{ color: '#ffaa55', fontSize: '0.85rem' }}>🖼️ Poster Upload Karo:</label>
               <input type="file" accept="image/*" onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0], 'poster')} style={{ ...inputStyle, padding: '8px' }} />
               {uploading === 'poster' && <p style={{ color: '#ffaa00', margin: '0 0 10px' }}>⏳ Poster upload ho raha hai...</p>}
               {poster && <img src={poster} style={{ width: '80px', borderRadius: '8px', marginBottom: '10px' }} />}
-              
               <label style={{ color: '#ffaa55', fontSize: '0.85rem' }}>🔊 Audio Upload Karo (WhatsApp/M4A/MP3):</label>
               <input 
                 type="file" 
@@ -1366,12 +1344,10 @@ export default function Home() {
                 style={{ ...inputStyle, padding: '8px' }} 
               />
               <p style={{ color: '#8a6a4a', fontSize: '0.78rem', marginTop: '-8px', marginBottom: '12px' }}>
-                💡 Tip: Files open karke standard list se apni audio track select karein.
+                💡 Tip: Files open karke apni audio track select karein.
               </p>
-              
               {uploading === 'audio' && <p style={{ color: '#ffaa00', margin: '0 0 10px' }}>⏳ Audio upload ho raha hai...</p>}
               {audio && <p style={{ color: '#00cc00', margin: '0 0 10px', fontSize: '0.8rem' }}>✅ Audio ready hai</p>}
-              
               <textarea placeholder="Story Text (audio-only ho toh khali chhodo)" value={text} onChange={(e) => setText(e.target.value)} rows="6" style={{ ...inputStyle, resize: 'vertical' }} />
               <div style={{ marginBottom: '12px' }}>
                 <label style={{ color: '#aaa', marginRight: '10px' }}>💰 Price ₹ (0 = Free):</label>
