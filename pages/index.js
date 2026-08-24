@@ -293,49 +293,112 @@ export default function Home() {
 
   const clearForm = () => { setTitle(''); setText(''); setPoster(''); setAudio(''); setPrice('0'); setStoryLang('hindi'); setStoryCat('अन्य'); setEditId(null); };
 
-  // 🛠️ iOS SAFE UPLOAD FILE FUNCTION 🛠️
+  // 🖼️ iOS FIX: HEIC/PNG to standard JPEG Convertor via HTML Canvas
+  const convertToJpegBlob = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // Image resize (Poster standard size limit to fast upload)
+          const MAX_WIDTH = 1000;
+          const MAX_HEIGHT = 1000;
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          canvas.toBlob((blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error("Canvas blob error"));
+          }, 'image/jpeg', 0.85); // 85% high quality compressed JPEG
+        };
+        img.onerror = () => reject(new Error("Image load error"));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error("File reader error"));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // 🚀 BULLETPROOF iOS UPLOAD FUNCTION WITH RAW ERROR CODES
   const uploadFile = async (file, kind) => {
     if (!file) return;
+
+    // iOS Check 1: iCloud un-downloaded file blocker
+    if (file.size === 0) {
+      alert("⚠️ Error: File size 0 bytes hai! Agar yeh file iCloud par hai, toh pehle iPhone Files app mein jakar ise manual download kijiye, phir yahan select kijiye.");
+      return;
+    }
+
     setUploading(kind);
     try {
-      // iOS Fix 1: Explicitly define resource type (Audio goes to 'video' for Cloudinary, Poster to 'image')
-      const resourceType = kind === 'poster' ? 'image' : 'video';
-      
-      // iOS Fix 2: Handle generic or missing filename attributes in iOS Safari
+      let uploadBlob = file;
       let fileName = file.name || (kind === 'poster' ? 'image.jpg' : 'audio.mp3');
-      
-      // Force correct file extension fallback for iOS safari upload
-      if (kind === 'poster' && !fileName.match(/\.(jpg|jpeg|png|webp|heic)$/i)) {
-        fileName = 'poster_image.jpg';
-      } else if (kind === 'audio' && !fileName.match(/\.(mp3|wav|m4a|aac|ogg)$/i)) {
-        fileName = 'audio_track.mp3';
+
+      // iOS Check 2: Convert HEIC/weird formats directly to JPEG
+      if (kind === 'poster') {
+        try {
+          alert("⏳ iPhone photo standard format mein optimize ho rahi hai...");
+          uploadBlob = await convertToJpegBlob(file);
+          fileName = 'saaya_poster_' + Date.now() + '.jpg';
+        } catch (err) {
+          console.log("Canvas convert skipped: ", err);
+          // Fallback if canvas fails
+          uploadBlob = file;
+        }
+      } else {
+        // iOS Check 3: Force secure Audio Re-packing to bypass Safari sandbox file lock
+        uploadBlob = new Blob([file], { type: file.type || 'audio/mpeg' });
+        fileName = 'saaya_audio_' + Date.now() + '.mp3';
       }
 
+      const resourceType = kind === 'poster' ? 'image' : 'video';
       const fd = new FormData();
-      // iOS Fix 3: Wrap original file with customized filename to bypass safari restrictions
-      fd.append('file', file, fileName);
+      fd.append('file', uploadBlob, fileName);
       fd.append('upload_preset', UPLOAD_PRESET);
 
-      // iOS Fix 4: Directly hit explicit Cloudinary endpoint to avoid auto detection failure
       const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`;
       
       const res = await fetch(uploadUrl, { 
-        method: 'POST', 
-        body: fd 
+        method: 'POST',
+        body: fd
       });
       
-      const data = await res.json();
+      const responseText = await res.text();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (jsonErr) {
+        throw new Error("Server response JSON nahi hai: " + responseText.substring(0, 150));
+      }
       
-      if (data.secure_url) {
+      if (res.ok && data.secure_url) {
         if (kind === 'poster') setPoster(data.secure_url); 
         else setAudio(data.secure_url);
         alert((kind === 'poster' ? 'Poster' : 'Audio') + ' upload ho gaya! ✅');
       } else { 
-        const errMsg = data.error && data.error.message ? data.error.message : 'Dada, Upload setting check karo!';
-        alert('❌ Upload fail: ' + errMsg); 
+        // 💬 Exact Error shown directly to admin iPhone screen
+        const errMsg = data.error && data.error.message ? data.error.message : responseText;
+        alert('❌ Cloudinary Error:\n' + errMsg + '\n\n(Tip: Check if your Cloudinary unsigned preset allows video uploads!)'); 
       }
     } catch (e) { 
-      alert('❌ Upload error: ' + e.message + '\nApne settings check karein.'); 
+      alert('❌ Upload Failed Error:\n' + e.message); 
     }
     setUploading('');
   };
@@ -1059,14 +1122,14 @@ export default function Home() {
               </div>
               
               <label style={{ color: '#ffaa55', fontSize: '0.85rem' }}>🖼️ Poster Upload Karo:</label>
-              {/* iOS Fix 5: iPhone Media Picker optimized accept value */}
-              <input type="file" accept="image/*,image/png,image/jpeg,image/heic" onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0], 'poster')} style={{ ...inputStyle, padding: '8px' }} />
+              {/* 🛠️ iOS FIX: Capture high resolution images standard picker */}
+              <input type="file" accept="image/*" onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0], 'poster')} style={{ ...inputStyle, padding: '8px' }} />
               {uploading === 'poster' && <p style={{ color: '#ffaa00', margin: '0 0 10px' }}>⏳ Poster upload ho raha hai...</p>}
               {poster && <img src={poster} style={{ width: '80px', borderRadius: '8px', marginBottom: '10px' }} />}
               
               <label style={{ color: '#ffaa55', fontSize: '0.85rem' }}>🔊 Audio Upload Karo (MP3):</label>
-              {/* iOS Fix 6: iPhone files & voicememos selection support */}
-              <input type="file" accept="audio/*,audio/mp3,audio/mpeg,audio/m4a" onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0], 'audio')} style={{ ...inputStyle, padding: '8px' }} />
+              {/* 🛠️ iOS FIX: Files, Voice memos, and iCloud storage picker optimized */}
+              <input type="file" accept="audio/*" onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0], 'audio')} style={{ ...inputStyle, padding: '8px' }} />
               {uploading === 'audio' && <p style={{ color: '#ffaa00', margin: '0 0 10px' }}>⏳ Audio upload ho raha hai...</p>}
               {audio && <p style={{ color: '#00cc00', margin: '0 0 10px', fontSize: '0.8rem' }}>✅ Audio ready hai</p>}
               
