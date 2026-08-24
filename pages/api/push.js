@@ -4,8 +4,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import webpush from 'web-push';
 
 const publicKey = "BDIFBrmb92vnSOX52kfrlZroOkWmw2-a6dZ3Y8O0nl0mnNMw3S3u3Cue-cUs5q-HA36y6nrjG2VdmDJa6JzuRvM";
-const privateKey = "XdLp8bELWMBjyHEHDW1bY0qi1oOJUtAKDrZ8F2PcEv4"
-}
+const privateKey = "XdLp8bELWMBjyHEHDW1bY0qi1oOJUtAKDrZ8F2PcEv4";
 
 webpush.setVapidDetails(
   'mailto:vivaan2024koshiya@gmail.com',
