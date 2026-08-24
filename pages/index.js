@@ -293,19 +293,50 @@ export default function Home() {
 
   const clearForm = () => { setTitle(''); setText(''); setPoster(''); setAudio(''); setPrice('0'); setStoryLang('hindi'); setStoryCat('अन्य'); setEditId(null); };
 
+  // 🛠️ iOS SAFE UPLOAD FILE FUNCTION 🛠️
   const uploadFile = async (file, kind) => {
+    if (!file) return;
     setUploading(kind);
     try {
+      // iOS Fix 1: Explicitly define resource type (Audio goes to 'video' for Cloudinary, Poster to 'image')
+      const resourceType = kind === 'poster' ? 'image' : 'video';
+      
+      // iOS Fix 2: Handle generic or missing filename attributes in iOS Safari
+      let fileName = file.name || (kind === 'poster' ? 'image.jpg' : 'audio.mp3');
+      
+      // Force correct file extension fallback for iOS safari upload
+      if (kind === 'poster' && !fileName.match(/\.(jpg|jpeg|png|webp|heic)$/i)) {
+        fileName = 'poster_image.jpg';
+      } else if (kind === 'audio' && !fileName.match(/\.(mp3|wav|m4a|aac|ogg)$/i)) {
+        fileName = 'audio_track.mp3';
+      }
+
       const fd = new FormData();
-      fd.append('file', file);
+      // iOS Fix 3: Wrap original file with customized filename to bypass safari restrictions
+      fd.append('file', file, fileName);
       fd.append('upload_preset', UPLOAD_PRESET);
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, { method: 'POST', body: fd });
+
+      // iOS Fix 4: Directly hit explicit Cloudinary endpoint to avoid auto detection failure
+      const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`;
+      
+      const res = await fetch(uploadUrl, { 
+        method: 'POST', 
+        body: fd 
+      });
+      
       const data = await res.json();
+      
       if (data.secure_url) {
-        if (kind === 'poster') setPoster(data.secure_url); else setAudio(data.secure_url);
+        if (kind === 'poster') setPoster(data.secure_url); 
+        else setAudio(data.secure_url);
         alert((kind === 'poster' ? 'Poster' : 'Audio') + ' upload ho gaya! ✅');
-      } else { alert('Upload fail: ' + (data.error && data.error.message ? data.error.message : 'dobara try karo')); }
-    } catch (e) { alert('Upload error: ' + e.message); }
+      } else { 
+        const errMsg = data.error && data.error.message ? data.error.message : 'Dada, Upload setting check karo!';
+        alert('❌ Upload fail: ' + errMsg); 
+      }
+    } catch (e) { 
+      alert('❌ Upload error: ' + e.message + '\nApne settings check karein.'); 
+    }
     setUploading('');
   };
 
@@ -1026,14 +1057,19 @@ export default function Home() {
                   <button key={ct} onClick={() => setStoryCat(ct)} style={{ padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: storyCat === ct ? '#ff6600' : '#0a0a0a', color: storyCat === ct ? '#fff' : '#777', border: '1px solid #444' }}>{ct}</button>
                 ))}
               </div>
+              
               <label style={{ color: '#ffaa55', fontSize: '0.85rem' }}>🖼️ Poster Upload Karo:</label>
-              <input type="file" accept="image/*" onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0], 'poster')} style={{ ...inputStyle, padding: '8px' }} />
+              {/* iOS Fix 5: iPhone Media Picker optimized accept value */}
+              <input type="file" accept="image/*,image/png,image/jpeg,image/heic" onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0], 'poster')} style={{ ...inputStyle, padding: '8px' }} />
               {uploading === 'poster' && <p style={{ color: '#ffaa00', margin: '0 0 10px' }}>⏳ Poster upload ho raha hai...</p>}
               {poster && <img src={poster} style={{ width: '80px', borderRadius: '8px', marginBottom: '10px' }} />}
+              
               <label style={{ color: '#ffaa55', fontSize: '0.85rem' }}>🔊 Audio Upload Karo (MP3):</label>
-              <input type="file" accept="audio/*" onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0], 'audio')} style={{ ...inputStyle, padding: '8px' }} />
+              {/* iOS Fix 6: iPhone files & voicememos selection support */}
+              <input type="file" accept="audio/*,audio/mp3,audio/mpeg,audio/m4a" onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0], 'audio')} style={{ ...inputStyle, padding: '8px' }} />
               {uploading === 'audio' && <p style={{ color: '#ffaa00', margin: '0 0 10px' }}>⏳ Audio upload ho raha hai...</p>}
               {audio && <p style={{ color: '#00cc00', margin: '0 0 10px', fontSize: '0.8rem' }}>✅ Audio ready hai</p>}
+              
               <textarea placeholder="Story Text (audio-only ho toh khali chhodo)" value={text} onChange={(e) => setText(e.target.value)} rows="6" style={{ ...inputStyle, resize: 'vertical' }} />
               <div style={{ marginBottom: '12px' }}>
                 <label style={{ color: '#aaa', marginRight: '10px' }}>💰 Price ₹ (0 = Free):</label>
