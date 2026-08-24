@@ -10,7 +10,7 @@ const UPLOAD_PRESET = "wlse6ksh";
 // ⬇️ LINE 11: RAZORPAY KEY ⬇️
 const RAZORPAY_KEY = "rzp_test_TSLL3jml0siRz4";
 const AMBIENCE_URL = "https://res.cloudinary.com/zyexm5wm/video/upload/v1787307374/simplesound-horror-trailer-443327.mp3";
-const VAPID_PUBLIC_KEY = "BJ53B_tIeb65_gO9Z_m6m_8_069X-76Z_E44C4w_7Z6m6w-Z7m0K5z0G6gO0fX3Ie9D7l39uS_Y";
+const VAPID_PUBLIC_KEY = "BDIFBrmb92vnSOX52kfrlZroOkWmw2-a6dZ3Y8O0nl0mnNMw3S3u3Cue-cUs5q-HA36y6nrjG2VdmDJa6JzuRvM",
 
 const CATEGORIES = ['चुड़ैल', 'हवेली', 'श्मशान', 'आपबीती', 'जंगल', 'अन्य'];
 
