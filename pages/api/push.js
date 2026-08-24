@@ -1,12 +1,11 @@
 // pages/api/push.js - साया ऐप ऑटो-पुश एपीआई
-// pages/api/push.js - साया ऐप ऑटो-पुश एपीआई
 import { db } from '../../lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import webpush from 'web-push';
 
-const publicKey = "BDIFBrmb92vnSOX52kfrlZroOkWmw2-a6dZ3Y8O0nl0mnNMw3S3u3Cue-cUs5q-HA36y6nrjG2VdmDJa6JzuRvM",
+const publicKey = "BDIFBrmb92vnSOX52kfrlZroOkWmw2-a6dZ3Y8O0nl0mnNMw3S3u3Cue-cUs5q-HA36y6nrjG2VdmDJa6JzuRvM";
 const privateKey = "XdLp8bELWMBjyHEHDW1bY0qi1oOJUtAKDrZ8F2PcEv4"
-} 
+}
 
 webpush.setVapidDetails(
   'mailto:vivaan2024koshiya@gmail.com',
@@ -35,7 +34,7 @@ export default async function handler(req, res) {
       url: storyId ? `${req.headers.origin}?storyId=${storyId}` : '/'
     });
 
-    const promises = subs.map(sub => 
+    const promises = subs.map(sub =>
       webpush.sendNotification(sub, payload).catch(err => {
         console.error("Subscription expired: ", err);
       })
