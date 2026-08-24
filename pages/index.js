@@ -10,6 +10,7 @@ const UPLOAD_PRESET = "wlse6ksh";
 // ⬇️ LINE 11: RAZORPAY KEY ⬇️
 const RAZORPAY_KEY = "rzp_test_TSLL3jml0siRz4";
 const AMBIENCE_URL = "https://res.cloudinary.com/zyexm5wm/video/upload/v1787307374/simplesound-horror-trailer-443327.mp3";
+const VAPID_PUBLIC_KEY = "BJ53B_tIeb65_gO9Z_m6m_8_069X-76Z_E44C4w_7Z6m6w-Z7m0K5z0G6gO0fX3Ie9D7l39uS_Y";
 
 const CATEGORIES = ['चुड़ैल', 'हवेली', 'श्मशान', 'आपबीती', 'जंगल', 'अन्य'];
 
@@ -27,6 +28,17 @@ function formatViews(n) {
 }
 
 const isNew = (s) => s.createdAt && (Date.now() - s.createdAt) < 7 * 24 * 3600 * 1000;
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
 
 export default function Home() {
   const [stories, setStories] = useState([]);
@@ -78,6 +90,13 @@ export default function Home() {
   const [catFilter, setCatFilter] = useState('all');
   const [storyCat, setStoryCat] = useState('अन्य');
   const [hasPass, setHasPass] = useState(false);
+  const [showPushBanner, setShowPushBanner] = useState(false);
+  
+  // ⚙️ Diagnosis Tools
+  const [debugSW, setDebugSW] = useState("Checking...");
+  const [debugPermission, setDebugPermission] = useState("Checking...");
+  const [debugTokenCount, setDebugPermissionCount] = useState(0);
+
   const audioRef = useRef(null);
   const ambRef = useRef(null);
   const touchX = useRef(0);
@@ -95,9 +114,46 @@ export default function Home() {
     const s = document.createElement('script');
     s.src = 'https://checkout.razorpay.com/v1/checkout.js';
     document.body.appendChild(s);
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    
+    if (typeof window !== 'undefined') {
+      setDebugPermission(Notification.permission);
     }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then((reg) => {
+        setDebugSW("Active (चालू है) ✅");
+        if (Notification.permission === 'default') {
+          setTimeout(() => { setShowPushBanner(true); }, 3500);
+        }
+      }).catch((err) => {
+        setDebugSW("Failed (बंद है): " + err.message);
+      });
+    } else {
+      setDebugSW("Not supported by browser ❌");
+    }
+
+    const fetchSubCount = async () => {
+      try {
+        const snap = await getDocs(collection(db, "push_subscriptions"));
+        setDebugPermissionCount(snap.docs.length);
+      } catch (err) {}
+    };
+    fetchSubCount();
+
+    const params = new URLSearchParams(window.location.search);
+    const sId = params.get('storyId');
+    if (sId) {
+      const fetchDirectStory = async () => {
+        try {
+          const q = query(collection(db, "stories"));
+          const snap = await getDocs(q);
+          const matched = snap.docs.map(d => ({ id: d.id, ...d.data() })).find(s => s.id === sId);
+          if (matched) openStory(matched);
+        } catch (err) {}
+      };
+      fetchDirectStory();
+    }
+
     const onPop = () => {
       if (readingRef.current) {
         try {
@@ -129,6 +185,60 @@ export default function Home() {
     return () => { clearInterval(t); clearInterval(ht); window.removeEventListener('popstate', onPop); };
   }, []);
 
+  const subscribePushNotification = async () => {
+    setShowPushBanner(false);
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      alert("⚠️ Browser notifications support nahi karta.");
+      return;
+    }
+    try {
+      const permission = await Notification.requestPermission();
+      setDebugPermission(permission);
+      if (permission !== 'granted') {
+        alert("🔒 Alerts band hain. Browser settings se manually allow karein.");
+        return;
+      }
+
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+
+      await addDoc(collection(db, "push_subscriptions"), {
+        subscription: JSON.parse(JSON.stringify(sub)),
+        createdAt: Date.now()
+      });
+      alert("🎉 बधाई हो! खौफ़ के लाइव अलर्ट चालू हो गए हैं! 👻");
+      
+      const snap = await getDocs(collection(db, "push_subscriptions"));
+      setDebugPermissionCount(snap.docs.length);
+    } catch (e) {
+      alert("❌ Push error: " + e.message);
+    }
+  };
+
+  const sendTestNotification = async () => {
+    const tName = prompt("Notification का टाइटल लिखो:", "साया 👻");
+    const tMsg = prompt("मैसेज लिखो:", "सुनसान हवेली का दरवाज़ा खुल गया है... 💀");
+    if (!tName || !tMsg) return;
+    try {
+      const res = await fetch('/api/push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: tName, message: tMsg })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`✅ सफलता! ${data.sentCount} यूज़र्स को नोटिफिकेशन भेज दिया गया!`);
+      } else {
+        alert("❌ फेल हुआ: " + data.error);
+      }
+    } catch (err) {
+      alert("❌ एरर: " + err.message);
+    }
+  };
+
   const submitUserStory = async () => {
     if (!subName.trim() || !subTitle.trim() || !subText.trim()) return alert('Naam, Title aur Story - teeno likho!');
     if (subText.trim().length < 100) return alert('Story thodi lambi likho (kam se kam 100 akshar)!');
@@ -154,7 +264,7 @@ export default function Home() {
 
   const approveSub = async (sub) => {
     try {
-      await addDoc(collection(db, "stories"), {
+      const docRef = await addDoc(collection(db, "stories"), {
         title: sub.title, text: sub.text + '\n\n— ✍️ लेखक: ' + sub.writer,
         poster: '', audio: '', price: 0, lang: 'hindi', cat: 'आपबीती',
         views: 0, fearTotal: 0, fearCount: 0,
@@ -163,6 +273,19 @@ export default function Home() {
       await deleteDoc(doc(db, "submissions", sub.id));
       setPendingSubs(prev => prev.filter(p => p.id !== sub.id));
       alert('✅ Approve! "' + sub.title + '" ab public hai!');
+      
+      try {
+        await fetch('/api/push', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: `🚨 नई कहानी: ${sub.title} 👻`,
+            message: `लेखक ${sub.writer} की एक नई कहानी पब्लिश हुई है। क्या अकेले सुन पाओगे? 💀`,
+            storyId: docRef.id
+          })
+        });
+      } catch (err) {}
+
       loadStories();
     } catch (e) { alert('Error: ' + e.message); }
   };
@@ -180,7 +303,6 @@ export default function Home() {
     } catch (e) { setComments([]); }
   };
 
-  // 👑 VIP INC: Store VIP Status with the Comment to build Trust/FOMO
   const postComment = async () => {
     if (!isAdmin && !cmtName.trim()) return alert('Naam likho!');
     if (!cmtText.trim()) return alert('Comment likho!');
@@ -194,7 +316,7 @@ export default function Home() {
         parentId: replyTo ? replyTo.id : null,
         createdAt: Date.now(),
         date: new Date().toLocaleDateString('hi-IN'),
-        isVIP: !isAdmin && isUserPremium // Auto tag comment as VIP premium member!
+        isVIP: !isAdmin && isUserPremium
       });
       setCmtText(''); setReplyTo(null);
       loadComments(readingStory.id);
@@ -296,7 +418,6 @@ export default function Home() {
 
   const clearForm = () => { setTitle(''); setText(''); setPoster(''); setAudio(''); setPrice('0'); setStoryLang('hindi'); setStoryCat('अन्य'); setEditId(null); };
 
-  // 🖼️ Canvas Compressor (Supports HEIC / Custom images automatically)
   const convertToJpegBlob = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -329,7 +450,6 @@ export default function Home() {
     });
   };
 
-  // 🔊 🚀 BULLETPROOF MULTI-DEVICE COMPATIBLE UPLOAD (PC + Android + iOS)
   const uploadFile = async (file, kind) => {
     if (!file) return;
 
@@ -405,8 +525,22 @@ export default function Home() {
         await updateDoc(doc(db, "stories", editId), { title, text: text || '', poster: poster || '', audio: audio || '', price: parseInt(price) || 0, lang: storyLang, cat: storyCat });
         alert('Update ho gayi! ✏️');
       } else {
-        await addDoc(collection(db, "stories"), { title, text: text || '', poster: poster || '', audio: audio || '', price: parseInt(price) || 0, lang: storyLang, cat: storyCat, views: 0, fearTotal: 0, fearCount: 0, createdAt: Date.now(), date: new Date().toLocaleDateString('hi-IN') });
+        const docRef = await addDoc(collection(db, "stories"), { title, text: text || '', poster: poster || '', audio: audio || '', price: parseInt(price) || 0, lang: storyLang, cat: storyCat, views: 0, fearTotal: 0, fearCount: 0, createdAt: Date.now(), date: new Date().toLocaleDateString('hi-IN') });
         alert('Publish ho gayi! 🎃');
+
+        try {
+          await fetch('/api/push', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: `🚨 नई कहानी: ${title} 👻`,
+              message: `खौफ़ का लाइव अलर्ट! नई डरावनी कहानी अभी पब्लिश हुई है, क्या अकेले सुन पाओगे? 💀`,
+              storyId: docRef.id
+            })
+          });
+        } catch (pushErr) {
+          console.error("Auto notification trigger failed: ", pushErr);
+        }
       }
       clearForm(); loadStories();
     } catch (e) { alert('Error: ' + e.message); }
@@ -690,10 +824,24 @@ export default function Home() {
       {story.price > 0 && !isUnlocked(story) && <span style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: 'rgba(255,102,0,0.95)', color: '#fff', borderRadius: '20px', padding: '3px 8px', fontSize: '0.68rem', fontWeight: 'bold' }}>🔒 ₹{story.price}</span>}
     </div>
   );
-  return (
+    return (
     <div style={{ backgroundColor: C.bg, color: C.text, minHeight: '100vh', fontFamily: 'sans-serif', transition: 'background-color 0.4s, color 0.4s' }}>
       <Head><title>साया - खौफ़ की हिंदी कहानियाँ 👻</title></Head>
       <style>{css}</style>
+
+      {/* 🔔 Horror Notification Subscription Request Banner */}
+      {showPushBanner && (
+        <div style={{ background: 'linear-gradient(90deg, #ff6600, #990000)', color: '#fff', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1000, position: 'relative', boxShadow: '0 4px 15px rgba(0,0,0,0.5)', fontFamily: 'Georgia, serif' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '1.5rem' }}>💀</span>
+            <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 'bold' }}>आधी रात को नई खौफ़नाक कहानियों के लाइव अलर्ट चाहिए? अभी चालू करें!</p>
+          </div>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button onClick={subscribePushNotification} style={{ backgroundColor: '#fff', color: '#000', border: 'none', borderRadius: '15px', padding: '6px 14px', fontSize: '0.78rem', fontWeight: 'bold', cursor: 'pointer' }}>हाँ, चालू करो! ✅</button>
+            <button onClick={() => setShowPushBanner(false)} style={{ backgroundColor: 'transparent', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
+          </div>
+        </div>
+      )}
 
       <div style={{ filter: blurBg ? 'blur(8px)' : 'none', pointerEvents: blurBg ? 'none' : 'auto', transition: 'filter 0.3s' }}>
 
@@ -859,7 +1007,17 @@ export default function Home() {
             </div>
             <button onClick={() => { setShowAdminMenu(false); setShowPanel(true); }} style={{ width: '100%', padding: '15px', marginBottom: '10px', backgroundColor: '#ff6600', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: 'bold', textAlign: 'left' }}>📝 Nayi Story Add Karo</button>
             <button onClick={() => { setShowAdminMenu(false); loadPending(); }} style={{ width: '100%', padding: '15px', marginBottom: '10px', backgroundColor: '#ffaa00', color: '#000', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: 'bold', textAlign: 'left' }}>⏳ Pending Stories (Review)</button>
+            {/* Manual push notification diagnostic button */}
+            <button onClick={() => { setShowAdminMenu(false); sendTestNotification(); }} style={{ width: '100%', padding: '15px', marginBottom: '10px', backgroundColor: '#5c00a3', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: 'bold', textAlign: 'left' }}>📢 Push Notification Bhejo (Manual)</button>
             <button onClick={async () => { await signOut(auth); setShowAdminMenu(false); alert('Logout ho gaye! 👋'); }} style={{ width: '100%', padding: '15px', backgroundColor: '#8b0000', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: 'bold', textAlign: 'left' }}>🚪 Logout</button>
+            
+            {/* Live Diagnostics Dashboard */}
+            <div style={{ marginTop: '15px', padding: '12px', borderRadius: '8px', backgroundColor: '#000', fontSize: '0.78rem', color: '#aaa', border: '1px solid #333', textAlign: 'left' }}>
+               <p style={{ margin: '0 0 5px', color: '#ffaa00', fontWeight: 'bold' }}>📡 Notification Diagnostics:</p>
+               <div>Service Worker: <span style={{ color: '#fff' }}>{debugSW}</span></div>
+               <div>Permission Status: <span style={{ color: '#fff' }}>{debugPermission}</span></div>
+               <div>Total Subscribers: <span style={{ color: '#00ff00', fontWeight: 'bold' }}>{debugTokenCount} users</span></div>
+            </div>
           </div>
         </div>
       )}
@@ -929,7 +1087,7 @@ export default function Home() {
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', backgroundColor: '#1a1410', border: '3px solid #c9962e', borderRadius: '50%', width: '55px', height: '55px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '1.5rem' }}>👻</div>
             </div>
             <p style={{ color: '#8a6a4a', fontSize: '0.8rem' }}>🧡 नारंगी हिस्सा = 🎁 FREE कहानी</p>
-            <button onClick={spinWheel} disabled={spinning} style={{ ...orgBtn, padding: '14px 40px', fontSize: '1.1rem', opacity: spinning ? 0.5 : 1 }}>{spinning ? 'घूम रहा है...' : '🎡 घुमाओ!'}</button>
+            <button onClick={spinWheel} disabled={spinning} style={{ ...orgBtn, padding: '14px 40px', fontSize: '1.15rem', opacity: spinning ? 0.5 : 1 }}>{spinning ? 'घूम रहा है...' : '🎡 घुमाओ!'}</button>
             {wheelMsg && <p style={{ color: '#ffaa55', marginTop: '15px', fontSize: '0.95rem' }}>{wheelMsg}</p>}
             {!spinning && <p onClick={() => setShowWheel(false)} style={{ color: '#555', marginTop: '12px', fontSize: '0.8rem', cursor: 'pointer' }}>बंद करो ✕</p>}
           </div>
@@ -960,7 +1118,6 @@ export default function Home() {
 
               {readingStory.poster && (
                 <div style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', marginBottom: '15px', border: '2px solid #6b4a12' }}>
-                  {/* Remove blur only if unlocked OR it has audio file to play teaser */}
                   <img src={readingStory.poster} alt={readingStory.title} style={{ width: '100%', display: 'block', filter: (isUnlocked(readingStory) || readingStory.audio) ? 'none' : 'blur(8px)' }} />
                 </div>
               )}
@@ -975,8 +1132,7 @@ export default function Home() {
                       const a = audioRef.current;
                       if (!a) return;
                       setCurTime(a.currentTime);
-                      // 🛑 Teaser Limit: Stop locked users at 45 seconds to trigger buy
-                      if (a.currentTime >= 45) {
+                      if (a.currentTime >= 45) { // 🛑 Block locked users at 45 seconds
                         a.pause();
                         setPlaying(false);
                         a.currentTime = 0;
@@ -1086,7 +1242,6 @@ export default function Home() {
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                               <span style={{ color: c.name.includes('👑') ? '#ff8822' : '#4caf50', fontSize: '0.85rem', fontWeight: 'bold' }}>{c.name}</span>
-                              {/* 👑 VIP Premium Golden Badge */}
                               {c.isVIP && (
                                 <span style={{ background: 'linear-gradient(90deg, #ffaa00, #ff6600)', color: '#000', padding: '2px 7px', borderRadius: '10px', fontSize: '0.62rem', fontWeight: 'bold', display: 'inline-block', boxShadow: '0 0 8px rgba(255,170,0,0.5)' }}>👑 VIP MEMBER</span>
                               )}
