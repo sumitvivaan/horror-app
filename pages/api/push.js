@@ -4,8 +4,9 @@ import { collection, getDocs } from 'firebase/firestore';
 import webpush from 'web-push';
 
 // 🔑 100% मैथमेटिकली करेक्ट वीआईपी कीज़ (Gauranteed No-Error Keys)
-const publicKey = "BJ53B_tIeb65_gO9Z_m6m_8_069X-76Z_E44C4w_7Z6m6w-Z7m0K5z0G6gO0fX3Ie9D7l39uS_Y";
-const privateKey = "uS_Y6o9vE1z7vE1w7t8X069X-76Z-E44C4w_7Z6m6w-Z"; 
+const publicKey = "BDIFBrmb92vnSOX52kfrlZroOkWmw2-a6dZ3Y8O0nl0mnNMw3S3u3Cue-cUs5q-HA36y6nrjG2VdmDJa6JzuRvM",
+const privateKey = "XdLp8bELWMBjyHEHDW1bY0qi1oOJUtAKDrZ8F2PcEv4"
+} 
 
 webpush.setVapidDetails(
   'mailto:vivaan2024koshiya@gmail.com',
