@@ -293,7 +293,7 @@ export default function Home() {
 
   const clearForm = () => { setTitle(''); setText(''); setPoster(''); setAudio(''); setPrice('0'); setStoryLang('hindi'); setStoryCat('अन्य'); setEditId(null); };
 
-  // 🖼️ iOS Safe HEIC to JPEG canvas converter
+  // 🖼️ canvas jpeg converter for HEIC and PNG files
   const convertToJpegBlob = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -315,51 +315,55 @@ export default function Home() {
           ctx.drawImage(img, 0, 0, width, height);
           canvas.toBlob((blob) => {
             if (blob) resolve(blob);
-            else reject(new Error("Canvas error"));
+            else reject(new Error("Canvas failure"));
           }, 'image/jpeg', 0.85);
         };
-        img.onerror = () => reject(new Error("Image load error"));
+        img.onerror = () => reject(new Error("Image render error"));
         img.src = e.target.result;
       };
-      reader.onerror = () => reject(new Error("Reader error"));
+      reader.onerror = () => reject(new Error("FileReader error"));
       reader.readAsDataURL(file);
     });
   };
 
-  // 🔊 🛠️ BULLETPROOF iOS UPLOAD METHOD (WHATSAPP OPUS/OGG COMPATIBLE)
+  // 🔊 🚀 BULLETPROOF MULTI-DEVICE COMPATIBLE UPLOAD (PC + Android + iOS)
   const uploadFile = async (file, kind) => {
     if (!file) return;
 
     if (file.size === 0) {
-      alert("⚠️ Error: 0-byte file! Agar yeh iCloud par hai, toh pehle iPhone Files app mein manually download kijiye.");
+      alert("⚠️ Error: File data 0 bytes hai! (iCloud files ko pehle download kar lijiye).");
       return;
     }
 
     setUploading(kind);
     try {
+      const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent);
       let uploadBlob = file;
       let fileName = file.name || (kind === 'poster' ? 'image.jpg' : 'audio.mp3');
 
       if (kind === 'poster') {
-        try {
-          uploadBlob = await convertToJpegBlob(file);
-          fileName = 'saaya_poster_' + Date.now() + '.jpg';
-        } catch (err) {
-          console.log("Canvas skip, using original.");
+        // iPhone standard HEIC/PNG direct to Canvas conversion
+        if (isIos || fileName.match(/\.(heic|png|webp)$/i)) {
+          try {
+            uploadBlob = await convertToJpegBlob(file);
+            fileName = 'saaya_poster_' + Date.now() + '.jpg';
+          } catch (err) {
+            console.log("Canvas skipped: ", err);
+          }
         }
       } else {
-        // iOS Fix: WhatsApp Audio files (.opus/.ogg/.wav) sandboxed extraction
-        // Re-read raw binary stream and pack securely as audio/mpeg or audio/ogg
-        let detectType = file.type || 'audio/mpeg';
-        if (fileName.endsWith('.opus')) detectType = 'audio/ogg'; // Cloudinary handles opus via ogg container
-        
-        uploadBlob = new Blob([file], { type: detectType });
-        // Force safe filename format
+        // Audio conversion only for iOS sandbox compatibility
+        if (isIos || !file.type || file.type === 'application/octet-stream') {
+          let detectType = file.type || 'audio/mpeg';
+          if (fileName.endsWith('.opus')) detectType = 'audio/ogg';
+          uploadBlob = new Blob([file], { type: detectType });
+        }
+        // Force safe clean audio filename
         const cleanExt = fileName.includes('.') ? fileName.split('.').pop() : 'mp3';
         fileName = `saaya_audio_${Date.now()}.${cleanExt}`;
       }
 
-      const resourceType = kind === 'poster' ? 'image' : 'video'; // Cloudinary uses 'video' for audio files
+      const resourceType = kind === 'poster' ? 'image' : 'video';
       const fd = new FormData();
       fd.append('file', uploadBlob, fileName);
       fd.append('upload_preset', UPLOAD_PRESET);
@@ -376,7 +380,7 @@ export default function Home() {
       try {
         data = JSON.parse(responseText);
       } catch (e) {
-        throw new Error("Server Error: " + responseText.substring(0, 100));
+        throw new Error("Cloudinary response failed parsing: " + responseText.substring(0, 100));
       }
       
       if (res.ok && data.secure_url) {
@@ -385,10 +389,10 @@ export default function Home() {
         alert((kind === 'poster' ? 'Poster' : 'Audio') + ' upload ho gaya! ✅');
       } else { 
         const errMsg = data.error && data.error.message ? data.error.message : responseText;
-        alert('❌ Server Error: ' + errMsg); 
+        alert('❌ Error: ' + errMsg); 
       }
     } catch (e) { 
-      alert('❌ Error: ' + e.message); 
+      alert('❌ Upload Error: ' + e.message); 
     }
     setUploading('');
   };
@@ -967,7 +971,7 @@ export default function Home() {
                   <div style={{ fontSize: '3.5rem' }}>🔒</div>
                   <h2 style={{ color: '#ff8822', margin: '10px 0' }}>यह प्रीमियम कहानी है</h2>
                   <div style={{ backgroundColor: 'rgba(255,102,0,0.12)', border: '1px dashed #ff6600', borderRadius: '10px', padding: '10px', margin: '10px auto', maxWidth: '320px' }}>
-                    <p style={{ color: '#ffaa55', margin: 0, fontSize: '0.9rem', fontWeight: 'bold' }}>⚡ आज का oferta (ऑफर) खत्म होने में:</p>
+                    <p style={{ color: '#ffaa55', margin: 0, fontSize: '0.9rem', fontWeight: 'bold' }}>⚡ आज का ऑफर खत्म होने में:</p>
                     <p style={{ color: '#ff4444', margin: '5px 0 0', fontSize: '1.3rem', fontWeight: 'bold', fontFamily: 'monospace' }}>{offerLeft}</p>
                     <p style={{ color: '#c9a97a', margin: '5px 0 0', fontSize: '1rem' }}><s style={{ color: '#777' }}>₹{readingStory.price * 2}</s> <span style={{ color: '#00cc44', fontWeight: 'bold', fontSize: '1.2rem' }}>₹{readingStory.price}</span></p>
                   </div>
@@ -1112,14 +1116,13 @@ export default function Home() {
               </div>
               
               <label style={{ color: '#ffaa55', fontSize: '0.85rem' }}>🖼️ Poster Upload Karo:</label>
-              {/* iOS Direct Camera/Gallery support */}
+              {/* Universal Image Selector (All OS Friendly) */}
               <input type="file" accept="image/*" onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0], 'poster')} style={{ ...inputStyle, padding: '8px' }} />
               {uploading === 'poster' && <p style={{ color: '#ffaa00', margin: '0 0 10px' }}>⏳ Poster upload ho raha hai...</p>}
               {poster && <img src={poster} style={{ width: '80px', borderRadius: '8px', marginBottom: '10px' }} />}
               
               <label style={{ color: '#ffaa55', fontSize: '0.85rem' }}>🔊 Audio Upload Karo (WhatsApp/M4A/MP3):</label>
-              
-              {/* 🛠️ 100% iOS BYPASS FOR WHATSAPP/OGG/OPUS FADED FILES 🛠️ */}
+              {/* Universal Audio Input with Bypassed File types for iPhone / PC / Android */}
               <input 
                 type="file" 
                 accept="audio/*,video/*,application/octet-stream,application/x-dec-event,.mp3,.m4a,.aac,.wav,.ogg,.opus,.caf,.amr" 
@@ -1127,7 +1130,7 @@ export default function Home() {
                 style={{ ...inputStyle, padding: '8px' }} 
               />
               <p style={{ color: '#8a6a4a', fontSize: '0.78rem', marginTop: '-8px', marginBottom: '12px' }}>
-                💡 iOS Tip: WhatsApp ya voice notes audio select karne ke liye input dabakar <b>"Choose File" / "Browse"</b> kijiye!
+                💡 Tip: Files open karke standard list se apni audio track select karein.
               </p>
               
               {uploading === 'audio' && <p style={{ color: '#ffaa00', margin: '0 0 10px' }}>⏳ Audio upload ho raha hai...</p>}
