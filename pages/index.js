@@ -837,7 +837,10 @@ export default function Home() {
   );
     return (
     <div style={{ backgroundColor: C.bg, color: C.text, minHeight: '100vh', fontFamily: 'sans-serif', transition: 'background-color 0.4s, color 0.4s' }}>
-      <Head><title>साया - खौफ़ की हिंदी कहानियाँाँ </title></Head>
+      <Head>
+  <title>SAYA - Horror Stories Hindi / English</title>
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet" />
+</Head>
       <style>{css}</style>
 
       {/* 👻 SPOOKY WELCOME TOAST */}
