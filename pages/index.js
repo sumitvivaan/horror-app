@@ -993,7 +993,7 @@ export default function Home() {
           )}
           {hasPass && (
             <div style={{ marginTop: '12px', background: 'linear-gradient(135deg, #3d0000, #1a0000)', border: '2px solid #ffaa00', borderRadius: '14px', padding: '10px 18px', textAlign: 'center' }}>
-              <p style={{ color: '#ffcc44', margin: 0, fontWeight: 'bold', fontSize: '0.95rem' }}>👑 आप PREMIUM MEMBER हो — सभी कहानियाँ UNLOCKED! 🎉</p>
+              <p style={{ color: '#ee3333', margin: 0, fontWeight: 'bold', fontSize: '0.95rem' }}>👑 Monthly Premium चालू है — सभी कहानियाँ 30 दिनों तक UNLOCKED! 🎉</p>
             </div>
           )}
 
@@ -1274,7 +1274,7 @@ export default function Home() {
                   <button onClick={() => payStory(readingStory)} style={{ ...orgBtn, padding: '16px 40px', fontSize: '1.15rem', marginTop: '5px', boxShadow: '0 0 25px rgba(230,0,0,0.4)' }}>💳 ₹{readingStory.price} देकर अनलॉक करो</button>
                   <p style={{ color: '#666', margin: '15px 0 8px' }}>—— या ——</p>
                   <button onClick={buyPass} style={{ padding: '14px 28px', background: 'linear-gradient(135deg, #ffaa00, #cc7700)', color: '#000', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.95rem', boxShadow: '0 0 20px rgba(255,170,0,0.4)' }}>👑 ₹99 Premium Pass — सब कुछ UNLOCK</button>
-                  <p style={{ color: '#8a5555', fontSize: '0.75rem', marginTop: '8px' }}>एक बार दो, सभी paid कहानियाँ हमेशा के लिए!</p>
+                  <p style={{ color: '#885555', fontSize: '0.75rem', marginTop: '8px' }}>₹99 दो, 30 दिनों तक सभी paid कहानियाँ खुल जाएँगी!</p>
                   <p style={{ color: '#666', margin: '15px 0 8px' }}>—— या ——</p>
                   <button onClick={() => shareUnlock(readingStory)} style={{ padding: '13px 28px', backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.95rem' }}>🎁 5 दोस्तों को Share करो, FREE पाओ ({sharesCnt[readingStory.id] || 0}/5)</button>
                   <p style={{ color: '#8a5555', fontSize: '0.75rem', marginTop: '8px' }}>WhatsApp par 5 baar share karo aur kahani free unlock!</p>
