@@ -780,16 +780,20 @@ export default function Home() {
 }
     .sayaLogoLight {
       font-family: 'Creepster', Impact, 'Arial Black', serif;
-      font-size: 2.7rem;
+      font-size: 2.85rem;
       font-weight: normal;
-      letter-spacing: 0.22em;
+      letter-spacing: 0.12em;
       line-height: 0.95;
-      background: linear-gradient(180deg, #7a0b0b 0%, #b30000 38%, #5c0000 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      filter: drop-shadow(0 1px 0 #3a0000) drop-shadow(0 0 10px rgba(139,0,0,0.35));
-      transform: rotate(-1.2deg);
+      color: #ffe24a;
+      -webkit-text-fill-color: #ffe24a;
+      -webkit-text-stroke: 1.4px #6a0000;
+      text-shadow:
+        0 0 6px rgba(255, 210, 0, 0.85),
+        0 0 16px rgba(255, 140, 0, 0.4),
+        0 3px 0 #3a0000,
+        2px 5px 0 rgba(20, 0, 0, 0.85);
+      animation: sayaFlicker 4.2s infinite;
+      transform: rotate(-1.5deg);
     }
     @keyframes wob { 0%,100%{transform:rotate(-8deg)} 50%{transform:rotate(8deg)} }
     @keyframes heroFade { from{opacity:0.4; transform:scale(1.04)} to{opacity:1; transform:scale(1)} }
