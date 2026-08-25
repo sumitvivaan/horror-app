@@ -774,10 +774,10 @@ export default function Home() {
     @keyframes bounce2 { 0%,100%{height:20px} 50%{height:6px} }
     @keyframes bounce3 { 0%,100%{height:12px} 50%{height:30px} }
     @keyframes glow { 0%,100%{text-shadow:0 0 12px rgba(255,210,0,0.55)} 50%{text-shadow:0 0 28px rgba(255,200,0,0.95)} }
-@keyframes sayaFlicker {
-  0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; filter: drop-shadow(0 0 10px rgba(255,210,0,0.9)) drop-shadow(0 0 22px rgba(255,170,0,0.45)); }
-  20%, 24%, 55% { opacity: 0.7; filter: drop-shadow(0 0 4px rgba(255,200,0,0.35)); }
-}
+    @keyframes sayaFlicker {
+      0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; }
+      20%, 24%, 55% { opacity: 0.78; }
+    }
     .sayaLogoLight {
       font-family: 'Creepster', Impact, 'Arial Black', serif;
       font-size: 2.85rem;
