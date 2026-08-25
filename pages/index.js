@@ -809,7 +809,7 @@ export default function Home() {
     .playing .b1 { animation: bounce1 0.7s infinite; } .playing .b2 { animation: bounce2 0.5s infinite; }
     .playing .b3 { animation: bounce3 0.8s infinite; } .playing .b4 { animation: bounce2 0.6s infinite; }
     .playing .b5 { animation: bounce1 0.9s infinite; }
-    .sayaTitle { animation: glow 3s infinite; }
+    .sayaTitle { animation: none; }
     .wobble { display:inline-block; animation: wob 1.5s infinite; }
     .heroImg { animation: heroFade 0.8s ease; }
     .row { display:flex; overflow-x:auto; gap:12px; padding:12px 4px 18px; scrollbar-width:none; -ms-overflow-style:none; }
