@@ -784,15 +784,17 @@ export default function Home() {
       font-weight: normal;
       letter-spacing: 0.12em;
       line-height: 0.95;
-      color: #ffe24a;
-      -webkit-text-fill-color: #ffe24a;
-      -webkit-text-stroke: 1.4px #6a0000;
+      color: #ffe34a;
+      -webkit-text-fill-color: #ffe34a;
+      background: none;
+      -webkit-background-clip: unset;
+      background-clip: unset;
+      -webkit-text-stroke: 1.5px #5a0000;
       text-shadow:
-        0 0 6px rgba(255, 210, 0, 0.85),
-        0 0 16px rgba(255, 140, 0, 0.4),
-        0 3px 0 #3a0000,
-        2px 5px 0 rgba(20, 0, 0, 0.85);
-      animation: sayaFlicker 4.2s infinite;
+        0 2px 0 #3a0000,
+        2px 4px 0 #1a0000,
+        0 0 8px rgba(255, 200, 0, 0.55);
+      animation: none;
       transform: rotate(-1.5deg);
     }
     @keyframes wob { 0%,100%{transform:rotate(-8deg)} 50%{transform:rotate(8deg)} }
