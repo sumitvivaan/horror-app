@@ -773,7 +773,24 @@ export default function Home() {
     @keyframes bounce1 { 0%,100%{height:8px} 50%{height:26px} }
     @keyframes bounce2 { 0%,100%{height:20px} 50%{height:6px} }
     @keyframes bounce3 { 0%,100%{height:12px} 50%{height:30px} }
-    @keyframes glow { 0%,100%{text-shadow:0 0 15px rgba(230,0,0,0.6)} 50%{text-shadow:0 0 35px rgba(230,0,0,1)} }
+    @keyframes glow { 0%,100%{text-shadow:0 0 12px rgba(255,210,0,0.55)} 50%{text-shadow:0 0 28px rgba(255,200,0,0.95)} }
+@keyframes sayaFlicker {
+  0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; filter: drop-shadow(0 0 10px rgba(255,210,0,0.9)) drop-shadow(0 0 22px rgba(255,170,0,0.45)); }
+  20%, 24%, 55% { opacity: 0.7; filter: drop-shadow(0 0 4px rgba(255,200,0,0.35)); }
+}
+.sayaLogo {
+  font-family: 'Creepster', Impact, 'Arial Black', serif;
+  font-size: 2.7rem;
+  font-weight: normal;
+  letter-spacing: 0.22em;
+  line-height: 0.95;
+  background: linear-gradient(180deg, #fff8c8 0%, #ffe566 30%, #ffd000 62%, #b8860b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: sayaFlicker 4.2s infinite;
+  transform: rotate(-1.2deg);
+}
     @keyframes wob { 0%,100%{transform:rotate(-8deg)} 50%{transform:rotate(8deg)} }
     @keyframes heroFade { from{opacity:0.4; transform:scale(1.04)} to{opacity:1; transform:scale(1)} }
     @keyframes shimmer { 0%{background-position:-400px 0} 100%{background-position:400px 0} }
