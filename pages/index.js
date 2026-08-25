@@ -860,9 +860,16 @@ export default function Home() {
   );
     return (
     <div style={{ backgroundColor: C.bg, color: C.text, minHeight: '100vh', fontFamily: 'sans-serif', transition: 'background-color 0.4s, color 0.4s' }}>
-            <Head>
+                  <Head>
         <title>SAYA - Horror Stories Hindi / English</title>
         <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet" />
+        <link rel="icon" href="/saya-logo.png" />
+        <link rel="shortcut icon" href="/saya-logo.png" />
+        <link rel="apple-touch-icon" href="/saya-logo.png" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#0a0305" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="SAYA" />
       </Head>
       <style>{css}</style>
 
