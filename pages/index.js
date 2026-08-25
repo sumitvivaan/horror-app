@@ -872,9 +872,32 @@ export default function Home() {
       <div style={{ filter: blurBg ? 'blur(8px)' : 'none', pointerEvents: blurBg ? 'none' : 'auto', transition: 'filter 0.3s' }}>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', position: 'sticky', top: 0, zIndex: 50, background: C.nav, backdropFilter: 'blur(8px)', borderBottom: '1px solid ' + C.navBorder }}>
-          <h1 className="sayaTitle" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-  <img src="/saya-logo.png" alt="साया" style={{ height: '55px', width: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 0 12px rgba(255,0,0,0.8))' }} onError={(e) => { e.target.style.display = 'none'; }} />
-  <span style={{ fontSize: '2.2rem', color: '#ff0000', fontFamily: '"Impact", "Arial Black", sans-serif', letterSpacing: '3px', textShadow: '3px 3px 0 #330000, 0 0 25px #ff0000, 0 0 45px #990000', lineHeight: 1 }}>साया</span>
+          <h1 className="sayaTitle" style={{ margin: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1 }}>
+  <svg viewBox="0 0 300 110" width="170" height="62" style={{ filter: 'drop-shadow(0 0 12px rgba(255,0,0,0.8))' }}>
+    <defs>
+      <linearGradient id="bloodGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#ff2222" />
+        <stop offset="50%" stopColor="#cc0000" />
+        <stop offset="100%" stopColor="#660000" />
+      </linearGradient>
+      <filter id="glow">
+        <feGaussianBlur stdDeviation="3" result="blur" />
+        <feMerge>
+          <feMergeNode in="blur" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
+    </defs>
+    <text x="150" y="55" textAnchor="middle" fontFamily="'Impact', 'Arial Black', sans-serif" fontSize="68" fontWeight="bold" fill="url(#bloodGrad)" filter="url(#glow)" letterSpacing="4">SAYA</text>
+    <path d="M 70 85 Q 70 95 65 108 M 120 85 Q 120 100 115 112 M 180 85 Q 180 97 175 110 M 230 85 Q 230 95 225 108" stroke="#990000" strokeWidth="5" strokeLinecap="round" fill="none" />
+    <circle cx="65" cy="111" r="5" fill="#990000" />
+    <circle cx="115" cy="115" r="6" fill="#990000" />
+    <circle cx="175" cy="113" r="5" fill="#990000" />
+    <circle cx="225" cy="111" r="6" fill="#990000" />
+  </svg>
+  <span style={{ fontSize: '0.8rem', color: '#ff5555', fontFamily: 'sans-serif', fontWeight: 'bold', letterSpacing: '2px', marginTop: '4px', textShadow: '0 0 8px rgba(255,0,0,0.8)' }}>
+    Hindi Horror Stories • Read &amp; Write
+  </span>
 </h1>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <button onClick={toggleTheme} style={{ padding: '6px 10px', borderRadius: '18px', cursor: 'pointer', fontSize: '1rem', backgroundColor: 'transparent', border: '1px solid ' + C.border }}>{dk ? '☀️' : '🌙'}</button>
