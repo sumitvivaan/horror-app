@@ -872,9 +872,9 @@ export default function Home() {
       <div style={{ filter: blurBg ? 'blur(8px)' : 'none', pointerEvents: blurBg ? 'none' : 'auto', transition: 'filter 0.3s' }}>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', position: 'sticky', top: 0, zIndex: 50, background: C.nav, backdropFilter: 'blur(8px)', borderBottom: '1px solid ' + C.navBorder }}>
-          <h1 className="sayaTitle" style={{ margin: 0, lineHeight: 0 }}>
-  <img src="/saya-logo.png" alt="साया" style={{ height: '55px', width: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 0 12px rgba(255,0,0,0.8))' }} onError={(e) => { e.target.style.display = 'none'; const sp = e.target.parentElement.querySelector('span'); if (sp) sp.style.display = 'inline'; }} />
-  <span style={{ display: 'none', fontSize: '2rem', color: '#ff0000', fontFamily: '"Impact", "Arial Black", sans-serif', letterSpacing: '3px', textShadow: '3px 3px 0 #330000, 0 0 25px #ff0000, 0 0 45px #990000' }}>साया</span>
+          <h1 className="sayaTitle" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+  <img src="/saya-logo.png" alt="साया" style={{ height: '55px', width: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 0 12px rgba(255,0,0,0.8))' }} onError={(e) => { e.target.style.display = 'none'; }} />
+  <span style={{ fontSize: '2.2rem', color: '#ff0000', fontFamily: '"Impact", "Arial Black", sans-serif', letterSpacing: '3px', textShadow: '3px 3px 0 #330000, 0 0 25px #ff0000, 0 0 45px #990000', lineHeight: 1 }}>साया</span>
 </h1>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <button onClick={toggleTheme} style={{ padding: '6px 10px', borderRadius: '18px', cursor: 'pointer', fontSize: '1rem', backgroundColor: 'transparent', border: '1px solid ' + C.border }}>{dk ? '☀️' : '🌙'}</button>
