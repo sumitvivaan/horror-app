@@ -807,7 +807,7 @@ export default function Home() {
     .spider { position:fixed; top:0; right:12%; z-index:101; pointer-events:none; animation: spiderDrop 6s ease-in-out infinite; text-align:center; font-size:1.2rem; }
     .spider .thread { width:1px; height:60px; background:rgba(200,200,200,0.35); margin:0 auto; }
     @keyframes fogMove { 0%{ transform:translateX(-25%);} 100%{ transform:translateX(25%);} }
-    .fog { position:fixed; bottom:-30px; left:-20%; width:140%; height:130px; z-index:101; pointer-events:none; background: radial-gradient(ellipse at center, rgba(150,100,100,0.13), transparent 70%); animation: fogMove 9s ease-in-out infinite alternate; }
+    .fog { position:fixed; bottom:-30px; left:-20%; width:140%; height:130px; z-index:101; pointer-events:none; background: radial-gradient(ellipse at center, rgba(150,80,80,0.13), transparent 70%); animation: fogMove 9s ease-in-out infinite alternate; }
     @keyframes darkPulse { 0%,100%{ box-shadow: inset 0 0 120px rgba(0,0,0,0.85);} 50%{ box-shadow: inset 0 0 200px rgba(0,0,0,0.97);} }
     .vignette { position:fixed; inset:0; z-index:99; pointer-events:none; animation: darkPulse 7s infinite; }
     @keyframes eyesBlink { 0%,88%,100%{opacity:0} 90%,96%{opacity:0.8} }
@@ -836,7 +836,6 @@ export default function Home() {
       <Head><title>साया - खौफ़ की हिंदी कहानियाँ</title></Head>
       <style>{css}</style>
 
-      {/* 👻 SPOOKY WELCOME TOAST */}
       {showWelcome && (
         <div style={{ position: 'fixed', top: '15px', left: '50%', transform: 'translateX(-50%)', zIndex: 2000, width: '92%', maxWidth: '400px' }}>
           <div className="wlBox" style={{ background: 'linear-gradient(135deg, #1a0505, #2a0808)', border: '1px solid #cc0000', borderRadius: '14px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 6px 25px rgba(200,0,0,0.35)' }}>
@@ -851,7 +850,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* 🔔 Push Banner */}
       {showPushBanner && (
         <div style={{ background: 'linear-gradient(90deg, #cc0000, #660000)', color: '#fff', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1000, position: 'relative', boxShadow: '0 4px 15px rgba(0,0,0,0.5)', fontFamily: 'Georgia, serif' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -940,4 +938,446 @@ export default function Home() {
                 <h2 style={{ color: '#fff', margin: '8px 0 4px', fontSize: '1.7rem', fontFamily: 'Georgia, serif', textShadow: '2px 2px 10px #000' }}>{hero.title}</h2>
                 <p style={{ color: '#ee5555', margin: '0 0 12px', fontSize: '0.85rem' }}>👁️ {formatViews(hero.views)} {isEng ? 'views' : 'बार देखी गई'}{hero.fearCount ? ' • 😱 ' + fearPct(hero) + '%' : ''}{hero.price > 0 && !isUnlocked(hero) ? ' • 🔒 ₹' + hero.price : ''}</p>
                 <button style={{ ...orgBtn, padding: '11px 30px', fontSize: '1rem', boxShadow: '0 0 20px rgba(200,0,0,0.5)' }}>{hero.audio ? '▶ ' + (isEng ? 'Listen Now' : 'अभी सुनो') : '📖 ' + (isEng ? 'Read Now' : 'अभी पढ़ो')}</button>
-             
+              </div>
+              <div style={{ position: 'absolute', bottom: '12px', right: '15px', display: 'flex', gap: '6px' }}>
+                {heroList.map((_, i) => (
+                  <div key={i} style={{ width: i === heroIdx % heroList.length ? '20px' : '8px', height: '8px', borderRadius: '4px', backgroundColor: i === heroIdx % heroList.length ? '#cc0000' : 'rgba(255,255,255,0.35)', transition: 'all 0.3s' }}></div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {loading && (
+            <>
+              <div className="skel" style={{ width: '100%', height: '250px', marginTop: '15px' }}></div>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '20px', overflow: 'hidden' }}>
+                {[1, 2, 3, 4, 5].map(i => <div key={i} className="skel" style={{ minWidth: '140px', height: '190px' }}></div>)}
+              </div>
+            </>
+          )}
+
+          {!loading && trending.length > 0 && (
+            <div style={{ marginTop: '25px' }}>
+              <h2 style={{ color: C.text, fontSize: '1.2rem', margin: '0 0 2px' }}>🔥 {isEng ? 'Most Watched' : 'सबसे ज़्यादा देखी गई'}</h2>
+              <div className="row">
+                {trending.map((story, i) => (
+                  <div key={story.id} style={{ display: 'flex', alignItems: 'flex-end', flexShrink: 0 }}>
+                    <span className="rankNum" style={{ marginRight: '-18px', zIndex: 1 }}>{i + 1}</span>
+                    {posterCard(story, '130px')}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!loading && newest.length > 0 && (
+            <div style={{ marginTop: '10px' }}>
+              <h2 style={{ color: C.text, fontSize: '1.2rem', margin: '0 0 2px' }}>🆕 {isEng ? 'New Stories' : 'नई कहानियाँ'}</h2>
+              <div className="row">
+                {newest.map(story => posterCard(story, '140px'))}
+              </div>
+            </div>
+          )}
+
+          {!loading && (
+            <div style={{ marginTop: '10px' }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '5px', flexWrap: 'wrap' }}>
+                <h2 style={{ color: C.text, fontSize: '1.2rem', margin: 0 }}>{isEng ? 'All Stories' : 'सभी कहानियाँ'}</h2>
+                <button onClick={() => setTab('audio')} style={{ padding: '6px 16px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: tab === 'audio' ? '#cc0000' : C.card, color: tab === 'audio' ? '#fff' : C.sub, border: tab === 'audio' ? 'none' : '1px solid ' + C.border }}>🔊 {isEng ? 'Listen' : 'सुनो'}</button>
+                <button onClick={() => setTab('text')} style={{ padding: '6px 16px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: tab === 'text' ? '#cc0000' : C.card, color: tab === 'text' ? '#fff' : C.sub, border: tab === 'text' ? 'none' : '1px solid ' + C.border }}>📖 {isEng ? 'Read' : 'पढ़ो'}</button>
+              </div>
+
+              {showList.length === 0 && <p style={{ color: C.sub, textAlign: 'center', padding: '30px' }}>{isEng ? 'No stories here yet...' : 'अभी कोई कहानी नहीं...'}</p>}
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '14px', paddingTop: '10px' }}>
+                {showList.map((story) => (
+                  <div key={story.id} onClick={() => openStory(story)} className="card" style={{ backgroundColor: C.card, borderRadius: '12px', overflow: 'hidden', border: '1px solid ' + C.border, cursor: 'pointer', position: 'relative' }}>
+                    {story.poster ? (
+                      <div style={{ position: 'relative' }}>
+                        <img src={story.poster} alt={story.title} style={{ width: '100%', height: '210px', objectFit: 'cover', display: 'block' }} />
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', padding: '28px 9px 7px' }}>
+                          <h3 style={{ color: '#fff', margin: 0, fontSize: '0.9rem', textShadow: '1px 1px 4px #000' }}>{story.title}</h3>
+                          <p style={{ color: '#ee5555', margin: '3px 0 0', fontSize: '0.7rem' }}>👁️ {formatViews(story.views)}{story.fearCount ? ' • 😱 ' + fearPct(story) + '%' : ''}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ height: '210px', background: 'linear-gradient(135deg, #1a0808, #330a0a)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '10px' }}>
+                        <span style={{ fontSize: '2.8rem' }}>{story.audio ? '🔊' : '🎃'}</span>
+                        <h3 style={{ color: '#fff', margin: '10px 0 0', fontSize: '0.9rem', textAlign: 'center' }}>{story.title}</h3>
+                        <p style={{ color: '#ee5555', margin: '4px 0 0', fontSize: '0.7rem' }}>👁️ {formatViews(story.views)}</p>
+                      </div>
+                    )}
+                    {isNew(story) && <span className="newBadge" style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#e50914', color: '#fff', borderRadius: '4px', padding: '2px 7px', fontSize: '0.65rem', fontWeight: 'bold' }}>NEW</span>}
+                    {story.price > 0 && !isUnlocked(story) && <span style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: 'rgba(200,0,0,0.95)', color: '#fff', borderRadius: '20px', padding: '3px 9px', fontSize: '0.7rem', fontWeight: 'bold' }}>🔒 ₹{story.price}</span>}
+                    {story.price > 0 && isUnlocked(story) && !isAdmin && <span style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: 'rgba(0,170,0,0.9)', color: '#fff', borderRadius: '20px', padding: '3px 9px', fontSize: '0.7rem' }}>{hasPass ? '👑' : '✅'}</span>}
+                    {isAdmin && (
+                      <div style={{ position: 'absolute', bottom: '8px', right: '8px', display: 'flex', gap: '6px' }}>
+                        <button onClick={(e) => { e.stopPropagation(); startEdit(story); }} style={{ backgroundColor: 'rgba(200,0,0,0.9)', color: '#fff', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer' }}>✏️</button>
+                        <button onClick={(e) => { e.stopPropagation(); removeStory(story.id); }} style={{ backgroundColor: 'rgba(0,0,0,0.7)', color: '#ff4444', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer' }}>🗑️</button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div style={{ textAlign: 'center', padding: '30px 0' }}>
+            <p style={{ color: C.footer, fontSize: '0.8rem', margin: '0 0 10px' }}>© साया - खौफ़ की हिंदी कहानियाँ 🎃 • "डर सिर्फ एक कहानी की दूरी पर है..."</p>
+            <p style={{ fontSize: '0.75rem', margin: 0 }}>
+              <a href="/policy" style={{ color: '#ee4444', textDecoration: 'none', margin: '0 8px' }}>About Us</a>•
+              <a href="/policy" style={{ color: '#ee4444', textDecoration: 'none', margin: '0 8px' }}>Contact</a>•
+              <a href="/policy" style={{ color: '#ee4444', textDecoration: 'none', margin: '0 8px' }}>Privacy Policy</a>•
+              <a href="/policy" style={{ color: '#ee4444', textDecoration: 'none', margin: '0 8px' }}>Terms</a>•
+              <a href="/policy" style={{ color: '#ee4444', textDecoration: 'none', margin: '0 8px' }}>Refund Policy</a>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {!blurBg && (
+        <>
+          <button onClick={() => { setShowWheel(true); setWheelMsg(''); }} className="wobble" style={{ position: 'fixed', bottom: '20px', left: '15px', zIndex: 90, backgroundColor: dk ? '#1a0808' : '#fff', border: '2px solid #cc0000', borderRadius: '50%', width: '56px', height: '56px', fontSize: '1.6rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(200,0,0,0.4)' }}>🎰</button>
+          <button onClick={toggleAmb} style={{ position: 'fixed', bottom: '20px', right: '15px', zIndex: 90, backgroundColor: ambOn ? '#cc0000' : (dk ? '#1a0808' : '#fff'), border: '2px solid #cc0000', borderRadius: '50%', width: '56px', height: '56px', fontSize: '1.4rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(200,0,0,0.4)' }}>{ambOn ? '🔊' : '🔇'}</button>
+          <button onClick={installApp} style={{ position: 'fixed', bottom: '85px', right: '15px', zIndex: 90, backgroundColor: '#cc0000', color: '#fff', border: 'none', borderRadius: '25px', padding: '12px 18px', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 0 20px rgba(200,0,0,0.6)' }}>📲 App Install करो</button>
+          <button onClick={() => setShowSubmit(true)} style={{ position: 'fixed', bottom: '85px', left: '15px', zIndex: 90, backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '25px', padding: '12px 16px', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 0 20px rgba(26,92,42,0.6)' }}>✍️ अपनी कहानी भेजो</button>
+        </>
+      )}
+
+      {showAdminMenu && isAdmin && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 125, padding: '20px' }} onClick={() => setShowAdminMenu(false)}>
+          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#1a0808', padding: '25px', borderRadius: '16px', border: '2px solid #cc0000', width: '100%', maxWidth: '340px', boxShadow: '0 0 40px rgba(200,0,0,0.3)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+              <h2 style={{ color: '#ee4444', margin: 0, fontSize: '1.3rem' }}>👑 Admin Panel</h2>
+              <button onClick={() => setShowAdminMenu(false)} style={{ backgroundColor: '#331818', color: '#fff', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer' }}>✕</button>
+            </div>
+            <button onClick={() => { setShowAdminMenu(false); setShowPanel(true); }} style={{ width: '100%', padding: '15px', marginBottom: '10px', backgroundColor: '#cc0000', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: 'bold', textAlign: 'left' }}>📝 Nayi Story Add Karo</button>
+            <button onClick={() => { setShowAdminMenu(false); loadPending(); }} style={{ width: '100%', padding: '15px', marginBottom: '10px', backgroundColor: '#aa0000', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: 'bold', textAlign: 'left' }}>⏳ Pending Stories (Review)</button>
+            <button onClick={() => { setShowAdminMenu(false); sendTestNotification(); }} style={{ width: '100%', padding: '15px', marginBottom: '10px', backgroundColor: '#5c00a3', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: 'bold', textAlign: 'left' }}>📢 Push Notification Bhejo</button>
+            <button onClick={async () => { await signOut(auth); setShowAdminMenu(false); alert('Logout ho gaye! 👋'); }} style={{ width: '100%', padding: '15px', backgroundColor: '#8b0000', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: 'bold', textAlign: 'left' }}>🚪 Logout</button>
+            <div style={{ marginTop: '15px', padding: '12px', borderRadius: '8px', backgroundColor: '#000', fontSize: '0.78rem', color: '#aaa', border: '1px solid #333', textAlign: 'left' }}>
+               <p style={{ margin: '0 0 5px', color: '#ee4444', fontWeight: 'bold' }}>📡 Notification Status:</p>
+               <div>Service Worker: <span style={{ color: '#fff' }}>{debugSW}</span></div>
+               <div>Permission: <span style={{ color: '#fff' }}>{debugPermission}</span></div>
+               <div>Subscribers: <span style={{ color: '#00ff00', fontWeight: 'bold' }}>{debugTokenCount} users</span></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSubmit && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', zIndex: 125, padding: '20px', overflowY: 'auto' }} onClick={() => setShowSubmit(false)}>
+          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#1a0808', padding: '25px', borderRadius: '16px', border: '2px solid #1a5c2a', width: '100%', maxWidth: '500px', margin: '20px 0' }}>
+            <h2 style={{ color: '#4caf50', marginTop: 0 }}>✍️ अपनी डरावनी कहानी भेजो</h2>
+            <p style={{ color: '#885555', fontSize: '0.85rem', marginTop: '-8px' }}>आपकी आपबीती या कहानी - admin check karke publish karega, आपके नाम के साथ! 👻</p>
+            <input type="text" placeholder="आपका नाम (yahi publish hoga)" value={subName} onChange={(e) => setSubName(e.target.value)} style={inputStyle} />
+            <input type="text" placeholder="कहानी का Title" value={subTitle} onChange={(e) => setSubTitle(e.target.value)} style={inputStyle} />
+            <textarea placeholder="अपनी पूरी कहानी यहाँ लिखो... (kam se kam 100 akshar)" value={subText} onChange={(e) => setSubText(e.target.value)} rows="10" style={{ ...inputStyle, resize: 'vertical' }} />
+            <p style={{ color: '#666', fontSize: '0.75rem' }}>⚠️ Gandi bhasha/galat content wali stories REJECT ho jayengi.</p>
+            <button onClick={submitUserStory} disabled={subSending} style={{ width: '100%', padding: '15px', backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '1.05rem', cursor: 'pointer', fontWeight: 'bold', opacity: subSending ? 0.5 : 1 }}>{subSending ? 'भेज रहे हैं...' : '📤 कहानी भेजो'}</button>
+            <button onClick={() => setShowSubmit(false)} style={{ width: '100%', padding: '10px', marginTop: '10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>बंद करो</button>
+          </div>
+        </div>
+      )}
+
+      {showPending && isAdmin && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', zIndex: 125, padding: '20px', overflowY: 'auto' }}>
+          <div style={{ backgroundColor: '#1a0808', padding: '25px', borderRadius: '16px', border: '2px solid #aa0000', width: '100%', maxWidth: '600px', margin: '20px 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ color: '#ee3333', margin: 0 }}>⏳ Pending Stories ({pendingSubs.length})</h2>
+              <button onClick={() => setShowPending(false)} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '50%', width: '35px', height: '35px', cursor: 'pointer' }}>✕</button>
+            </div>
+            {pendingSubs.length === 0 && <p style={{ color: '#888', textAlign: 'center', padding: '30px' }}>Koi pending story nahi hai! 🎉</p>}
+            {pendingSubs.map(sub => (
+              <div key={sub.id} style={{ backgroundColor: '#0d0505', borderRadius: '12px', padding: '15px', marginTop: '15px', border: '1px solid #331515' }}>
+                <h3 style={{ color: '#ee4444', margin: '0 0 5px' }}>{sub.title}</h3>
+                <p style={{ color: '#4caf50', fontSize: '0.85rem', margin: '0 0 10px' }}>✍️ {sub.writer} • 📅 {sub.date}</p>
+                <div style={{ color: '#ccc', fontSize: '0.9rem', lineHeight: '1.7', maxHeight: '200px', overflowY: 'auto', backgroundColor: '#140808', padding: '12px', borderRadius: '8px', whiteSpace: 'pre-wrap' }}>{sub.text}</div>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+                  <button onClick={() => approveSub(sub)} style={{ flex: 1, padding: '12px', backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>✅ Approve & Publish</button>
+                  <button onClick={() => rejectSub(sub.id)} style={{ flex: 1, padding: '12px', backgroundColor: '#8b0000', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>❌ Reject</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {showIosGuide && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 130, padding: '20px' }} onClick={() => setShowIosGuide(false)}>
+          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#1a0808', padding: '25px', borderRadius: '16px', border: '2px solid #cc0000', maxWidth: '340px', textAlign: 'center' }}>
+            <h2 style={{ color: '#ee4444', marginTop: 0 }}>📲 iPhone में Install करो</h2>
+            <div style={{ textAlign: 'left', color: '#e8c8c8', fontSize: '0.95rem', lineHeight: '2' }}>
+              <p>1️⃣ नीचे <b>Share बटन</b> दबाओ (⬆️ वाला box)</p>
+              <p>2️⃣ नीचे scroll करो</p>
+              <p>3️⃣ <b>"Add to Home Screen"</b> दबाओ</p>
+              <p>4️⃣ <b>"Add"</b> दबाओ — हो गया! 🎉</p>
+            </div>
+            <p style={{ color: '#885555', fontSize: '0.8rem' }}>⚠️ Safari browser में ही चलेगा!</p>
+            <button onClick={() => setShowIosGuide(false)} style={{ ...orgBtn, padding: '10px 30px' }}>समझ गया ✅</button>
+          </div>
+        </div>
+      )}
+
+      {showWheel && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 120, padding: '20px' }} onClick={() => !spinning && setShowWheel(false)}>
+          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#1a0808', padding: '25px', borderRadius: '16px', border: '2px solid #cc0000', width: '100%', maxWidth: '360px', textAlign: 'center', boxShadow: '0 0 40px rgba(200,0,0,0.3)' }}>
+            <h2 style={{ color: '#ee4444', marginTop: 0 }}>🎰 किस्मत का पहिया</h2>
+            <p style={{ color: '#aa7777', fontSize: '0.85rem', marginTop: '-5px' }}>हफ्ते में 1 बार घुमाओ — FREE कहानी जीतो!</p>
+            <div style={{ position: 'relative', width: '250px', height: '250px', margin: '15px auto' }}>
+              <div style={{ position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)', fontSize: '1.8rem', zIndex: 2 }}>🔻</div>
+              <div style={{ width: '250px', height: '250px', borderRadius: '50%', border: '6px solid #8b0000', boxSizing: 'border-box', background: 'conic-gradient(#cc0000 0deg 60deg, #1a0a0a 60deg 120deg, #cc0000 120deg 180deg, #1a0a0a 180deg 240deg, #2a0808 240deg 300deg, #1a0a0a 300deg 360deg)', transform: `rotate(${wheelDeg}deg)`, transition: 'transform 4s cubic-bezier(0.15,0.85,0.25,1)' }}></div>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', backgroundColor: '#1a0808', border: '3px solid #8b0000', borderRadius: '50%', width: '55px', height: '55px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '1.5rem' }}>👻</div>
+            </div>
+            <p style={{ color: '#885555', fontSize: '0.8rem' }}>❤️ लाल हिस्सा = 🎁 FREE कहानी</p>
+            <button onClick={spinWheel} disabled={spinning} style={{ ...orgBtn, padding: '14px 40px', fontSize: '1.1rem', opacity: spinning ? 0.5 : 1 }}>{spinning ? 'घूम रहा है...' : '🎡 घुमाओ!'}</button>
+            {wheelMsg && <p style={{ color: '#ee5555', marginTop: '15px', fontSize: '0.95rem' }}>{wheelMsg}</p>}
+            {!spinning && <p onClick={() => setShowWheel(false)} style={{ color: '#555', marginTop: '12px', fontSize: '0.8rem', cursor: 'pointer' }}>बंद करो ✕</p>}
+          </div>
+        </div>
+      )}
+
+      {readingStory && (
+        <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(5,0,0,0.6)', zIndex: 100, overflowY: 'auto', padding: '15px' }}>
+          <div className="vignette"></div>
+          <span className="storyBat">🦇</span>
+          <div className="spider"><div className="thread"></div>🕷️</div>
+          <span className="eyes">👀</span>
+          <span className="eyes eyes2">👀</span>
+          <div className="fog"></div>
+          <button onClick={closeStory} style={{ position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 110, backgroundColor: '#cc0000', color: '#fff', border: 'none', borderRadius: '25px', padding: '13px 32px', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 25px rgba(200,0,0,0.7)' }}>← वापस</button>
+          <div style={{ maxWidth: '650px', margin: '35px auto 90px', position: 'relative', zIndex: 102 }}>
+            <div className="frame" style={{ padding: '35px 18px 25px' }}>
+              <span className="corner" style={{ top: '6px', left: '8px' }}>🕸️</span>
+              <span className="corner" style={{ top: '6px', right: '8px' }}>🕸️</span>
+              <span className="corner" style={{ bottom: '6px', left: '8px' }}>🦴</span>
+              <span className="corner" style={{ bottom: '6px', right: '8px' }}>🦴</span>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '15px' }}>
+                <button onClick={closeStory} style={{ padding: '8px 16px', backgroundColor: 'rgba(0,0,0,0.5)', color: '#ee5555', border: '1px solid #6b1515', borderRadius: '8px', cursor: 'pointer' }}>← वापस</button>
+                <button onClick={() => shareStory(readingStory)} style={{ padding: '8px 16px', backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>📤 Share</button>
+                <button onClick={() => shareCardImg(readingStory)} style={{ padding: '8px 16px', backgroundColor: '#5c1a1a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>🖼️ Poster Share</button>
+              </div>
+
+              {readingStory.poster && (
+                <div style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', marginBottom: '15px', border: '2px solid #6b1515' }}>
+                  <img src={readingStory.poster} alt={readingStory.title} style={{ width: '100%', display: 'block', filter: (isUnlocked(readingStory) || readingStory.audio) ? 'none' : 'blur(8px)' }} />
+                </div>
+              )}
+              <h1 style={{ color: '#ee4444', margin: '0 0 5px', fontSize: '1.6rem', textAlign: 'center', fontFamily: 'Georgia, serif', textShadow: '0 0 15px rgba(200,0,0,0.5)' }}>{readingStory.title}</h1>
+              <p style={{ color: '#885555', textAlign: 'center', margin: '0 0 15px', fontSize: '0.85rem' }}>👁️ {formatViews((readingStory.views || 0) + 1)} बार देखी गई{readingStory.fearCount ? ' • 😱 ' + fearPct(readingStory) + '% लोगों को डर लगा' : ''}</p>
+
+              {!isUnlocked(readingStory) && readingStory.audio && (
+                <div className={playing ? 'playing' : ''} style={{ backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: '12px', padding: '20px', marginBottom: '22px', border: '1px dashed #cc0000', textAlign: 'center' }}>
+                  <audio ref={audioRef} src={readingStory.audio} preload="metadata" playsInline
+                    onTimeUpdate={() => {
+                      const a = audioRef.current;
+                      if (!a) return;
+                      setCurTime(a.currentTime);
+                      if (a.currentTime >= 45) {
+                        a.pause();
+                        setPlaying(false);
+                        a.currentTime = 0;
+                        alert("😱 रोमांचक मोड़! आगे क्या हुआ? जानने के लिए कहानी अनलॉक करें!");
+                      }
+                    }}
+                    onLoadedMetadata={() => setDuration(audioRef.current ? audioRef.current.duration : 0)}
+                    onEnded={() => setPlaying(false)} />
+                  <p style={{ color: '#ee3333', margin: '0 0 10px', fontWeight: 'bold', fontSize: '0.9rem' }}>🎧 45-सेकंड फ्री टीज़र (सुनकर देखें):</p>
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: '5px', height: '32px', marginBottom: '14px' }}>
+                    <div className="vbar b1" style={{ height: '10px' }}></div><div className="vbar b2" style={{ height: '18px' }}></div>
+                    <div className="vbar b3" style={{ height: '14px' }}></div><div className="vbar b4" style={{ height: '22px' }}></div>
+                    <div className="vbar b5" style={{ height: '9px' }}></div>
+                  </div>
+                  <button onClick={togglePlay} style={{ backgroundColor: '#cc0000', color: 'white', border: 'none', borderRadius: '50%', width: '64px', height: '64px', fontSize: '1.5rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(200,0,0,0.6)' }}>{playing ? '⏸' : '▶'}</button>
+                  <p style={{ color: '#885555', marginTop: '10px', fontSize: '0.78rem' }}>जैसे ही रोमांच चरम पर पहुंचेगा, ऑडियो रुक जाएगा 🎃</p>
+                </div>
+              )}
+
+              {!isUnlocked(readingStory) && (
+                <div style={{ textAlign: 'center', padding: '15px 10px' }}>
+                  <div style={{ fontSize: '3.5rem' }}>🔒</div>
+                  <h2 style={{ color: '#ee4444', margin: '10px 0' }}>यह प्रीमियम कहानी है</h2>
+                  <div style={{ backgroundColor: 'rgba(200,0,0,0.12)', border: '1px dashed #cc0000', borderRadius: '10px', padding: '10px', margin: '10px auto', maxWidth: '320px' }}>
+                    <p style={{ color: '#ee5555', margin: 0, fontSize: '0.9rem', fontWeight: 'bold' }}>⚡ आज का ऑफर खत्म होने में:</p>
+                    <p style={{ color: '#ff4444', margin: '5px 0 0', fontSize: '1.3rem', fontWeight: 'bold', fontFamily: 'monospace' }}>{offerLeft}</p>
+                    <p style={{ color: '#aa7777', margin: '5px 0 0', fontSize: '1rem' }}><s style={{ color: '#777' }}>₹{readingStory.price * 2}</s> <span style={{ color: '#00cc44', fontWeight: 'bold', fontSize: '1.2rem' }}>₹{readingStory.price}</span></p>
+                  </div>
+                  <button onClick={() => payStory(readingStory)} style={{ ...orgBtn, padding: '16px 40px', fontSize: '1.15rem', marginTop: '5px', boxShadow: '0 0 25px rgba(200,0,0,0.4)' }}>💳 ₹{readingStory.price} देकर अनलॉक करो</button>
+                  <p style={{ color: '#666', margin: '15px 0 8px' }}>—— या ——</p>
+                  <button onClick={buyPass} style={{ padding: '14px 28px', background: 'linear-gradient(135deg, #aa0000, #660000)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.95rem', boxShadow: '0 0 20px rgba(170,0,0,0.4)' }}>👑 ₹99 Premium Pass — सब कुछ UNLOCK</button>
+                  <p style={{ color: '#885555', fontSize: '0.75rem', marginTop: '8px' }}>एक बार दो, सभी paid कहानियाँ हमेशा के लिए!</p>
+                  <p style={{ color: '#666', margin: '15px 0 8px' }}>—— या ——</p>
+                  <button onClick={() => shareUnlock(readingStory)} style={{ padding: '13px 28px', backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.95rem' }}>🎁 5 दोस्तों को Share करो, FREE पाओ ({sharesCnt[readingStory.id] || 0}/5)</button>
+                  <p style={{ color: '#885555', fontSize: '0.75rem', marginTop: '8px' }}>WhatsApp par 5 baar share karo aur kahani free unlock!</p>
+                </div>
+              )}
+
+              {isUnlocked(readingStory) && (
+                <>
+                  {readingStory.audio && (
+                    <div className={playing ? 'playing' : ''} style={{ backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: '12px', padding: '20px', marginBottom: '15px', border: '1px solid #6b1515', textAlign: 'center' }}>
+                      <audio ref={audioRef} src={readingStory.audio} preload="metadata" playsInline
+                        onTimeUpdate={() => setCurTime(audioRef.current ? audioRef.current.currentTime : 0)}
+                        onLoadedMetadata={() => setDuration(audioRef.current ? audioRef.current.duration : 0)}
+                        onEnded={() => setPlaying(false)} />
+                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: '5px', height: '32px', marginBottom: '14px' }}>
+                        <div className="vbar b1" style={{ height: '10px' }}></div><div className="vbar b2" style={{ height: '18px' }}></div>
+                        <div className="vbar b3" style={{ height: '14px' }}></div><div className="vbar b4" style={{ height: '22px' }}></div>
+                        <div className="vbar b5" style={{ height: '9px' }}></div>
+                      </div>
+                      <input type="range" min="0" max={duration || 0} step="0.1" value={curTime} onChange={onSeek} />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#aa7777', fontSize: '0.8rem', marginTop: '5px' }}>
+                        <span>{formatTime(curTime)}</span><span>{formatTime(duration)}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '22px', marginTop: '14px' }}>
+                        <button onClick={() => skip(-10)} style={{ backgroundColor: '#2a0a0a', color: '#ee5555', border: '1px solid #6b1515', borderRadius: '50%', width: '52px', height: '52px', fontSize: '0.8rem', cursor: 'pointer' }}>-10s</button>
+                        <button onClick={togglePlay} style={{ backgroundColor: '#cc0000', color: 'white', border: 'none', borderRadius: '50%', width: '72px', height: '72px', fontSize: '1.7rem', cursor: 'pointer', boxShadow: '0 0 25px rgba(200,0,0,0.7)' }}>{playing ? '⏸' : '▶'}</button>
+                        <button onClick={() => skip(10)} style={{ backgroundColor: '#2a0a0a', color: '#ee5555', border: '1px solid #6b1515', borderRadius: '50%', width: '52px', height: '52px', fontSize: '0.8rem', cursor: 'pointer' }}>+10s</button>
+                      </div>
+                      <button onClick={() => downloadAudio(readingStory)} style={{ ...orgBtn, padding: '11px 26px', marginTop: '16px', fontSize: '0.9rem' }}>⬇️ ऑडियो डाउनलोड करो</button>
+                      <p style={{ color: '#885555', marginTop: '12px', marginBottom: 0, fontSize: '0.82rem' }}>🎧 हेडफ़ोन लगाओ... अकेले मत सुनना</p>
+                    </div>
+                  )}
+
+                  {readingStory.text && (
+                    <>
+                      <div style={{ textAlign: 'center' }}>
+                        <button onClick={() => downloadText(readingStory)} style={{ ...orgBtn, padding: '9px 22px', marginBottom: '14px', fontSize: '0.85rem' }}>⬇️ कहानी डाउनलोड करो</button>
+                      </div>
+                      <div style={{ color: '#e8c8c8', lineHeight: '2', fontSize: '1.1rem', whiteSpace: 'pre-wrap', fontFamily: 'Georgia, serif', padding: '5px 8px 10px' }}>{readingStory.text}</div>
+                    </>
+                  )}
+
+                  <div style={{ backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: '12px', padding: '15px', marginTop: '10px', border: '1px solid #6b1515', textAlign: 'center' }}>
+                    <p style={{ color: '#ee4444', margin: '0 0 8px', fontWeight: 'bold' }}>😱 कितना डर लगा?</p>
+                    {fearVotes[readingStory.id] ? (
+                      <p style={{ color: '#aa7777', margin: 0, fontSize: '0.9rem' }}>आपने {fearVotes[readingStory.id]} 💀 दिए! • {fearPct(readingStory)}% लोगों को डर लगा</p>
+                    ) : (
+                      <div>
+                        {[1, 2, 3, 4, 5].map(n => (
+                          <button key={n} className="skullBtn" onClick={() => rateFear(readingStory, n)}>💀</button>
+                        ))}
+                        <p style={{ color: '#666', margin: '5px 0 0', fontSize: '0.75rem' }}>(1 = थोड़ा डर, 5 = बहुत डर!)</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: '12px', padding: '15px', marginTop: '15px', border: '1px solid #6b1515' }}>
+                    <p style={{ color: '#ee4444', margin: '0 0 12px', fontWeight: 'bold' }}>💬 Comments ({comments.length})</p>
+
+                    {replyTo && (
+                      <div style={{ backgroundColor: '#1a0808', padding: '8px 12px', borderRadius: '8px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: '#ee5555', fontSize: '0.8rem' }}>↩️ Reply: <b>{replyTo.name}</b> ko</span>
+                        <button onClick={() => setReplyTo(null)} style={{ backgroundColor: 'transparent', color: '#888', border: 'none', cursor: 'pointer' }}>✕</button>
+                      </div>
+                    )}
+
+                    {!isAdmin && <input type="text" placeholder="आपका नाम" value={cmtName} onChange={(e) => setCmtName(e.target.value)} style={{ ...inputStyle, marginBottom: '8px' }} />}
+                    <textarea placeholder={replyTo ? 'अपना reply लिखो...' : 'अपना comment लिखो...'} value={cmtText} onChange={(e) => setCmtText(e.target.value)} rows="2" style={{ ...inputStyle, marginBottom: '8px', resize: 'vertical' }} />
+                    <button onClick={postComment} disabled={cmtSending} style={{ ...orgBtn, padding: '10px 25px', fontSize: '0.9rem', opacity: cmtSending ? 0.5 : 1 }}>{cmtSending ? 'भेज रहे...' : (replyTo ? '↩️ Reply भेजो' : '💬 Comment करो')}</button>
+
+                    <div style={{ marginTop: '15px' }}>
+                      {comments.filter(c => !c.parentId).length === 0 && <p style={{ color: '#666', fontSize: '0.85rem', textAlign: 'center' }}>अभी कोई comment नहीं... पहला comment आप करो! 👻</p>}
+                      {comments.filter(c => !c.parentId).map(c => (
+                        <div key={c.id} style={{ backgroundColor: '#140808', borderRadius: '10px', padding: '12px', marginBottom: '10px', border: c.name.includes('👑') ? '1px solid #cc0000' : '1px solid #2a1515' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ color: c.name.includes('👑') ? '#ee4444' : '#4caf50', fontSize: '0.85rem', fontWeight: 'bold' }}>{c.name}</span>
+                              {c.isVIP && (
+                                <span style={{ background: 'linear-gradient(90deg, #aa0000, #cc0000)', color: '#fff', padding: '2px 7px', borderRadius: '10px', fontSize: '0.62rem', fontWeight: 'bold', display: 'inline-block', boxShadow: '0 0 8px rgba(200,0,0,0.5)' }}>👑 VIP MEMBER</span>
+                              )}
+                            </div>
+                            <span style={{ color: '#555', fontSize: '0.7rem' }}>{c.date}</span>
+                          </div>
+                          <p style={{ color: '#ddd', margin: '6px 0', fontSize: '0.9rem', lineHeight: '1.6', fontFamily: 'sans-serif' }}>{c.text}</p>
+                          <div style={{ display: 'flex', gap: '12px' }}>
+                            <button onClick={() => setReplyTo(c)} style={{ backgroundColor: 'transparent', color: '#ee5555', border: 'none', cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}>↩️ Reply</button>
+                            {isAdmin && <button onClick={() => deleteComment(c.id)} style={{ backgroundColor: 'transparent', color: '#ff4444', border: 'none', cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}>🗑️ Delete</button>}
+                          </div>
+
+                          {comments.filter(r => r.parentId === c.id).map(r => (
+                            <div key={r.id} style={{ backgroundColor: '#0d0505', borderRadius: '8px', padding: '10px', marginTop: '8px', marginLeft: '15px', borderLeft: '2px solid ' + (r.name.includes('👑') ? '#cc0000' : '#3a2020') }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{ color: r.name.includes('👑') ? '#ee4444' : '#4caf50', fontSize: '0.8rem', fontWeight: 'bold' }}>{r.name}</span>
+                                  {r.isVIP && (
+                                    <span style={{ background: 'linear-gradient(90deg, #aa0000, #cc0000)', color: '#fff', padding: '1px 5px', borderRadius: '8px', fontSize: '0.58rem', fontWeight: 'bold' }}>👑 VIP</span>
+                                  )}
+                                </div>
+                                <span style={{ color: '#555', fontSize: '0.65rem' }}>{r.date}</span>
+                              </div>
+                              <p style={{ color: '#ccc', margin: '5px 0', fontSize: '0.85rem', lineHeight: '1.5', fontFamily: 'sans-serif' }}>{r.text}</p>
+                              {isAdmin && <button onClick={() => deleteComment(r.id)} style={{ backgroundColor: 'transparent', color: '#ff4444', border: 'none', cursor: 'pointer', fontSize: '0.7rem', padding: 0 }}>🗑️ Delete</button>}
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showLogin && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 100, padding: '20px' }} onClick={() => setShowLogin(false)}>
+          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#1a0808', padding: '30px', borderRadius: '16px', border: '2px solid #cc0000', width: '100%', maxWidth: '350px', boxShadow: '0 0 40px rgba(200,0,0,0.3)' }}>
+            <h2 style={{ color: '#ee4444', marginTop: 0, textAlign: 'center' }}>🔐 Admin Login</h2>
+            <p style={{ color: '#885555', fontSize: '0.85rem', textAlign: 'center' }}>Sirf admin ka Google account chalega</p>
+            <button onClick={handleLogin} style={{ ...orgBtn, width: '100%', padding: '14px', fontSize: '1rem' }}>🔑 Google Se Login Karo</button>
+          </div>
+        </div>
+      )}
+
+      {showPanel && isAdmin && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', zIndex: 100, padding: '20px', overflowY: 'auto' }}>
+          <div style={{ backgroundColor: '#1a0808', padding: '25px', borderRadius: '16px', border: editId ? '2px solid #aa0000' : '2px solid #cc0000', width: '100%', maxWidth: '550px', margin: '20px 0', boxShadow: '0 0 40px rgba(200,0,0,0.3)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ color: editId ? '#ee3333' : '#ee4444', margin: 0, fontSize: '1.3rem' }}>{editId ? '✏️ Edit Story' : '📝 Nayi Story'}</h2>
+              <button onClick={() => { setShowPanel(false); clearForm(); }} style={{ backgroundColor: '#331818', color: '#fff', border: 'none', borderRadius: '50%', width: '35px', height: '35px', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
+            </div>
+            <div style={{ marginTop: '15px' }}>
+              <input type="text" placeholder="Title (zaroori)" value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} />
+              <label style={{ color: '#ee5555', fontSize: '0.85rem' }}>🌐 Language:</label>
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', marginTop: '5px' }}>
+                <button onClick={() => setStoryLang('hindi')} style={{ flex: 1, padding: '10px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', backgroundColor: storyLang === 'hindi' ? '#cc0000' : '#0a0505', color: storyLang === 'hindi' ? '#fff' : '#777', border: '1px solid #441515' }}>हिंदी</button>
+                <button onClick={() => setStoryLang('english')} style={{ flex: 1, padding: '10px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', backgroundColor: storyLang === 'english' ? '#cc0000' : '#0a0505', color: storyLang === 'english' ? '#fff' : '#777', border: '1px solid #441515' }}>English</button>
+              </div>
+              <label style={{ color: '#ee5555', fontSize: '0.85rem' }}>🏷️ Category:</label>
+              <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', marginTop: '5px', flexWrap: 'wrap' }}>
+                {CATEGORIES.map(ct => (
+                  <button key={ct} onClick={() => setStoryCat(ct)} style={{ padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: storyCat === ct ? '#cc0000' : '#0a0505', color: storyCat === ct ? '#fff' : '#777', border: '1px solid #441515' }}>{ct}</button>
+                ))}
+              </div>
+              <label style={{ color: '#ee5555', fontSize: '0.85rem' }}>🖼️ Poster Upload Karo:</label>
+              <input type="file" accept="image/*" onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0], 'poster')} style={{ ...inputStyle, padding: '8px' }} />
+              {uploading === 'poster' && <p style={{ color: '#ee3333', margin: '0 0 10px' }}>⏳ Poster upload ho raha hai...</p>}
+              {poster && <img src={poster} style={{ width: '80px', borderRadius: '8px', marginBottom: '10px' }} />}
+              <label style={{ color: '#ee5555', fontSize: '0.85rem' }}>🔊 Audio Upload Karo (WhatsApp/M4A/MP3):</label>
+              <input
+                type="file"
+                accept="audio/*,video/*,application/octet-stream,application/x-dec-event,.mp3,.m4a,.aac,.wav,.ogg,.opus,.caf,.amr"
+                onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0], 'audio')}
+                style={{ ...inputStyle, padding: '8px' }}
+              />
+              <p style={{ color: '#885555', fontSize: '0.78rem', marginTop: '-8px', marginBottom: '12px' }}>
+                💡 Tip: Files open karke apni audio track select karein.
+              </p>
+              {uploading === 'audio' && <p style={{ color: '#ee3333', margin: '0 0 10px' }}>⏳ Audio upload ho raha hai...</p>}
+              {audio && <p style={{ color: '#00cc00', margin: '0 0 10px', fontSize: '0.8rem' }}>✅ Audio ready hai</p>}
+              <textarea placeholder="Story Text (audio-only ho toh khali chhodo)" value={text} onChange={(e) => setText(e.target.value)} rows="6" style={{ ...inputStyle, resize: 'vertical' }} />
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ color: '#aaa', marginRight: '10px' }}>💰 Price ₹ (0 = Free):</label>
+                <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} style={{ width: '100px', padding: '10px', backgroundColor: '#0a0505', color: 'white', border: '1px solid #441515', borderRadius: '8px' }} />
+              </div>
+              <button onClick={saveStory} disabled={!!uploading} style={{ ...orgBtn, width: '100%', padding: '15px', fontSize: '1.05rem', backgroundColor: editId ? '#aa0000' : '#cc0000', color: '#fff', opacity: uploading ? 0.5 : 1 }}>{editId ? '✏️ Update Karo' : '✅ Publish Karo'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
