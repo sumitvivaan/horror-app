@@ -892,31 +892,13 @@ export default function Home() {
       <div style={{ filter: blurBg ? 'blur(8px)' : 'none', pointerEvents: blurBg ? 'none' : 'auto', transition: 'filter 0.3s' }}>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', position: 'sticky', top: 0, zIndex: 50, background: C.nav, backdropFilter: 'blur(8px)', borderBottom: '1px solid ' + C.navBorder }}>
-          <h1 className="sayaTitle" style={{ margin: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1 }}>
-  <svg viewBox="0 0 300 110" width="170" height="62" style={{ filter: 'drop-shadow(0 0 12px rgba(255,0,0,0.8))' }}>
-    <defs>
-      <linearGradient id="bloodGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#ff2222" />
-        <stop offset="50%" stopColor="#cc0000" />
-        <stop offset="100%" stopColor="#660000" />
-      </linearGradient>
-      <filter id="glow">
-        <feGaussianBlur stdDeviation="3" result="blur" />
-        <feMerge>
-          <feMergeNode in="blur" />
-          <feMergeNode in="SourceGraphic" />
-        </feMerge>
-      </filter>
-    </defs>
-    <text x="150" y="55" textAnchor="middle" fontFamily="'Impact', 'Arial Black', sans-serif" fontSize="68" fontWeight="bold" fill="url(#bloodGrad)" filter="url(#glow)" letterSpacing="4">SAYA</text>
-    <path d="M 70 85 Q 70 95 65 108 M 120 85 Q 120 100 115 112 M 180 85 Q 180 97 175 110 M 230 85 Q 230 95 225 108" stroke="#990000" strokeWidth="5" strokeLinecap="round" fill="none" />
-    <circle cx="65" cy="111" r="5" fill="#990000" />
-    <circle cx="115" cy="115" r="6" fill="#990000" />
-    <circle cx="175" cy="113" r="5" fill="#990000" />
-    <circle cx="225" cy="111" r="6" fill="#990000" />
-  </svg>
-  <span style={{ fontSize: '0.8rem', color: '#ff5555', fontFamily: 'sans-serif', fontWeight: 'bold', letterSpacing: '2px', marginTop: '4px', textShadow: '0 0 8px rgba(255,0,0,0.8)' }}>
-    Hindi Horror Stories • Read &amp; Write
+          <h1 className="sayaTitle" style={{ margin: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.15 }}>
+  <span className="sayaLogo">SAYA</span>
+  <span style={{ fontSize: '0.72rem', color: '#e6c35a', fontFamily: 'Georgia, serif', fontWeight: 'bold', letterSpacing: '1.6px', marginTop: '6px', textShadow: '0 0 10px rgba(255,200,0,0.55)', textAlign: 'center' }}>
+    Horror Stories • Hindi / English
+  </span>
+  <span style={{ fontSize: '0.64rem', color: '#c9a84c', fontFamily: 'sans-serif', letterSpacing: '0.6px', marginTop: '4px', opacity: 0.95, textAlign: 'center' }}>
+    🔊 Audio Stories  •  📖 Text Stories
   </span>
 </h1>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
