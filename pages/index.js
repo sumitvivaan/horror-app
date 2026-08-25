@@ -837,7 +837,7 @@ export default function Home() {
   );
     return (
     <div style={{ backgroundColor: C.bg, color: C.text, minHeight: '100vh', fontFamily: 'sans-serif', transition: 'background-color 0.4s, color 0.4s' }}>
-      <Head><title>साया - खौफ़ की हिंदी कहानियाँ </title></Head>
+      <Head><title>साया - खौफ़ की हिंदी कहानियाँाँ </title></Head>
       <style>{css}</style>
 
       {/* 👻 SPOOKY WELCOME TOAST */}
