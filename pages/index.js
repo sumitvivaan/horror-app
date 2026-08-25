@@ -7,6 +7,7 @@ import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, orderBy, query,
 const ADMIN_EMAIL = "vivaan2024koshiya@gmail.com";
 const CLOUD_NAME = "wlse6ksh";
 const UPLOAD_PRESET = "wlse6ksh";
+// ⬇️ LINE 11: RAZORPAY KEY ⬇️
 const RAZORPAY_KEY = "rzp_test_TSLL3jml0siRz4";
 const AMBIENCE_URL = "https://res.cloudinary.com/zyexm5wm/video/upload/v1787307374/simplesound-horror-trailer-443327.mp3";
 const VAPID_PUBLIC_KEY = "BDIFBrmb92vnSOX52kfrlZroOkWmw2-a6dZ3Y8O0nl0mnNMw3S3u3Cue-cUs5q-HA36y6nrjG2VdmDJa6JzuRvM";
@@ -28,6 +29,7 @@ function formatViews(n) {
 
 const isNew = (s) => s.createdAt && (Date.now() - s.createdAt) < 2 * 24 * 3600 * 1000;
 
+// 🛡️ UNIVERSAL SAFETY HELPERS (iOS/Android/PC sab jagah safe)
 const hasNotifSupport = () => {
   try { return typeof window !== 'undefined' && 'Notification' in window && 'PushManager' in window && 'serviceWorker' in navigator; } catch (e) { return false; }
 };
@@ -119,9 +121,11 @@ export default function Home() {
     s.src = 'https://checkout.razorpay.com/v1/checkout.js';
     document.body.appendChild(s);
 
+    // 👻 Welcome toast (sab devices par safe)
     const wTimer = setTimeout(() => setShowWelcome(true), 1500);
     const wHide = setTimeout(() => setShowWelcome(false), 8000);
 
+    // 🛡️ iOS-SAFE Notification setup: pehle support check, phir hi use
     const notifOK = hasNotifSupport();
     if (notifOK) {
       try { setDebugPermission(Notification.permission); } catch (e) { setDebugPermission("unknown"); }
@@ -199,6 +203,7 @@ export default function Home() {
     return () => { clearInterval(t); clearInterval(ht); clearTimeout(wTimer); clearTimeout(wHide); window.removeEventListener('popstate', onPop); };
   }, []);
 
+  // 🛡️ iOS-SAFE Push Subscribe
   const subscribePushNotification = async () => {
     setShowPushBanner(false);
     if (!hasNotifSupport()) {
@@ -576,7 +581,7 @@ export default function Home() {
         try { localStorage.setItem('premiumPass', 'yes'); } catch (e) {}
         alert('👑 बधाई हो! आप PREMIUM MEMBER हो! 🎉');
       },
-      theme: { color: '#cc0000' }
+      theme: { color: '#e60000' }
     });
     rzp.open();
   };
@@ -587,7 +592,7 @@ export default function Home() {
       key: RAZORPAY_KEY, amount: story.price * 100, currency: 'INR',
       name: 'साया - खौफ़ की कहानियाँ', description: story.title,
       handler: function () { doUnlock(story.id); alert('Payment ho gayi! Ab suno aur download karo 🎃'); },
-      theme: { color: '#cc0000' }
+      theme: { color: '#e60000' }
     });
     rzp.open();
   };
@@ -681,7 +686,7 @@ export default function Home() {
       const canvas = document.createElement('canvas');
       canvas.width = 720; canvas.height = 960;
       const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#0d0305'; ctx.fillRect(0, 0, 720, 960);
+      ctx.fillStyle = '#0d0505'; ctx.fillRect(0, 0, 720, 960);
       if (story.poster) {
         await new Promise((res) => {
           const img = new Image();
@@ -695,16 +700,16 @@ export default function Home() {
         ctx.font = '160px serif'; ctx.textAlign = 'center'; ctx.fillText('👻', 360, 360);
       }
       const gr = ctx.createLinearGradient(0, 350, 0, 960);
-      gr.addColorStop(0, 'rgba(13,3,5,0)'); gr.addColorStop(0.4, 'rgba(13,3,5,0.9)'); gr.addColorStop(1, '#0d0305');
+      gr.addColorStop(0, 'rgba(13,5,5,0)'); gr.addColorStop(0.4, 'rgba(13,5,5,0.9)'); gr.addColorStop(1, '#0d0505');
       ctx.fillStyle = gr; ctx.fillRect(0, 300, 720, 660);
       ctx.textAlign = 'center';
       ctx.fillStyle = '#ffffff'; ctx.font = 'bold 42px Georgia';
       ctx.fillText(story.title.substring(0, 22), 360, 715);
-      ctx.fillStyle = '#ee5555'; ctx.font = 'italic 27px Georgia';
+      ctx.fillStyle = '#ff7777'; ctx.font = 'italic 27px Georgia';
       ctx.fillText('क्या तुम अकेले सुन पाओगे?', 360, 775);
-      ctx.fillStyle = '#cc0000'; ctx.font = 'bold 58px Georgia';
+      ctx.fillStyle = '#e60000'; ctx.font = 'bold 58px Georgia';
       ctx.fillText('साया', 360, 860);
-      ctx.fillStyle = '#885555'; ctx.font = '22px sans-serif';
+      ctx.fillStyle = '#8a5555'; ctx.font = '22px sans-serif';
       ctx.fillText(window.location.origin.replace('https://', ''), 360, 908);
       canvas.toBlob(async (blob) => {
         if (!blob) return alert('Card ban nahi paya!');
@@ -738,18 +743,18 @@ export default function Home() {
 
   const dk = theme === 'dark';
   const C = {
-    bg: dk ? '#0a0305' : '#f4e8e8',
-    card: dk ? '#140808' : '#fff5f5',
-    border: dk ? '#2a1515' : '#e0c0c0',
-    text: dk ? '#fff' : '#220a0a',
-    sub: dk ? '#888' : '#8a6262',
-    nav: dk ? 'linear-gradient(180deg, rgba(10,3,5,0.98), rgba(10,3,5,0.85))' : 'linear-gradient(180deg, rgba(248,234,234,0.98), rgba(248,234,234,0.9))',
-    navBorder: dk ? '#1a0a0a' : '#e5c5c5',
+    bg: dk ? '#0d0505' : '#f4e9e6',
+    card: dk ? '#180d0d' : '#fff5f2',
+    border: dk ? '#3a1a1a' : '#e0c3bd',
+    text: dk ? '#fff' : '#221a10',
+    sub: dk ? '#888' : '#8a7a62',
+    nav: dk ? 'linear-gradient(180deg, rgba(13,5,5,0.98), rgba(13,5,5,0.85))' : 'linear-gradient(180deg, rgba(248,237,234,0.98), rgba(248,237,234,0.9))',
+    navBorder: dk ? '#2a1212' : '#e5c5c5',
     footer: dk ? '#3a1515' : '#b58c8c'
   };
 
-  const inputStyle = { width: '100%', padding: '12px', marginBottom: '12px', backgroundColor: '#0a0505', color: 'white', border: '1px solid #441515', borderRadius: '8px', boxSizing: 'border-box', fontSize: '1rem' };
-  const orgBtn = { backgroundColor: '#cc0000', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' };
+  const inputStyle = { width: '100%', padding: '12px', marginBottom: '12px', backgroundColor: '#0a0a0a', color: 'white', border: '1px solid #444', borderRadius: '8px', boxSizing: 'border-box', fontSize: '1rem' };
+  const orgBtn = { backgroundColor: '#e60000', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' };
 
   const langStories = stories.filter(s => (s.lang || 'hindi') === lang)
     .filter(s => catFilter === 'all' || (s.cat || 'अन्य') === catFilter)
@@ -768,7 +773,7 @@ export default function Home() {
     @keyframes bounce1 { 0%,100%{height:8px} 50%{height:26px} }
     @keyframes bounce2 { 0%,100%{height:20px} 50%{height:6px} }
     @keyframes bounce3 { 0%,100%{height:12px} 50%{height:30px} }
-    @keyframes glow { 0%,100%{text-shadow:0 0 15px rgba(200,0,0,0.6)} 50%{text-shadow:0 0 35px rgba(200,0,0,1)} }
+    @keyframes glow { 0%,100%{text-shadow:0 0 15px rgba(230,0,0,0.6)} 50%{text-shadow:0 0 35px rgba(230,0,0,1)} }
     @keyframes wob { 0%,100%{transform:rotate(-8deg)} 50%{transform:rotate(8deg)} }
     @keyframes heroFade { from{opacity:0.4; transform:scale(1.04)} to{opacity:1; transform:scale(1)} }
     @keyframes shimmer { 0%{background-position:-400px 0} 100%{background-position:400px 0} }
@@ -777,7 +782,7 @@ export default function Home() {
     @keyframes wlGhost { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-5px);} }
     .wlBox { animation: wlSlide 0.6s cubic-bezier(0.2,0.9,0.3,1.1) both; }
     .wlGhost { display:inline-block; animation: wlGhost 2s ease-in-out infinite; }
-    .vbar { width:5px; background:#cc0000; border-radius:3px; }
+    .vbar { width:5px; background:#e60000; border-radius:3px; }
     .playing .b1 { animation: bounce1 0.7s infinite; } .playing .b2 { animation: bounce2 0.5s infinite; }
     .playing .b3 { animation: bounce3 0.8s infinite; } .playing .b4 { animation: bounce2 0.6s infinite; }
     .playing .b5 { animation: bounce1 0.9s infinite; }
@@ -787,27 +792,27 @@ export default function Home() {
     .row { display:flex; overflow-x:auto; gap:12px; padding:12px 4px 18px; scrollbar-width:none; -ms-overflow-style:none; }
     .row::-webkit-scrollbar { display:none; }
     .card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
-    .card:hover { transform: scale(1.06); box-shadow: 0 6px 30px rgba(200,0,0,0.4); z-index:2; }
+    .card:hover { transform: scale(1.06); box-shadow: 0 6px 30px rgba(230,0,0,0.4); z-index:2; }
     .card:hover img { filter: brightness(1.1); }
-    .skel { background: linear-gradient(90deg,${dk ? '#140808 25%,#200a0a 50%,#140808' : '#e8d0d0 25%,#f5e3e3 50%,#e8d0d0'} 75%); background-size:800px 100%; animation: shimmer 1.3s infinite; border-radius:12px; }
+    .skel { background: linear-gradient(90deg,${dk ? '#180d0d 25%,#2a1212 50%,#180d0d' : '#e8d0d0 25%,#f5e3e3 50%,#e8d0d0'} 75%); background-size:800px 100%; animation: shimmer 1.3s infinite; border-radius:12px; }
     .newBadge { animation: pulseNew 1.5s infinite; }
-    input[type=range] { -webkit-appearance:none; width:100%; height:6px; border-radius:5px; background:#3a1010; outline:none; }
-    input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#cc0000; cursor:pointer; box-shadow:0 0 10px rgba(200,0,0,0.9); }
-    .frame { border: 4px solid #8b0000; border-radius: 14px; position: relative;
+    input[type=range] { -webkit-appearance:none; width:100%; height:6px; border-radius:5px; background:#3a0d0d; outline:none; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#e60000; cursor:pointer; box-shadow:0 0 10px rgba(230,0,0,0.9); }
+    .frame { border: 4px solid #8a2222; border-radius: 14px; position: relative;
       background: linear-gradient(180deg, #2a0505 0%, #1a0303 50%, #3d0808 100%);
-      box-shadow: 0 0 0 2px #6b1515, 0 0 0 6px #2a0a05, 0 0 60px rgba(200,0,0,0.25), inset 0 0 40px rgba(0,0,0,0.8); }
+      box-shadow: 0 0 0 2px #4a1212, 0 0 0 6px #1a0505, 0 0 60px rgba(230,0,0,0.25), inset 0 0 40px rgba(0,0,0,0.8); }
     .frame:before { content:'💀'; position:absolute; top:-24px; left:50%; transform:translateX(-50%);
-      font-size:2.2rem; filter: drop-shadow(0 0 10px rgba(200,0,0,0.8)); }
+      font-size:2.2rem; filter: drop-shadow(0 0 10px rgba(255,0,0,0.8)); }
     .frame .corner { position:absolute; font-size:1.1rem; opacity:0.9; }
     .skullBtn { background:none; border:none; font-size:1.7rem; cursor:pointer; filter:grayscale(1); transition: all 0.2s; }
-    .rankNum { font-size:5.5rem; font-weight:900; color:transparent; -webkit-text-stroke: 2px #cc0000; font-family:sans-serif; line-height:1; opacity:0.85; }
+    .rankNum { font-size:5.5rem; font-weight:900; color:transparent; -webkit-text-stroke: 2px #e60000; font-family:sans-serif; line-height:1; opacity:0.85; }
     @keyframes batFly { 0%{ left:-60px; top:15%; transform:scaleX(1);} 45%{ top:8%; } 50%{ left:105%; transform:scaleX(1);} 51%{ transform:scaleX(-1);} 95%{ top:20%; } 100%{ left:-60px; top:15%; transform:scaleX(-1);} }
-    .storyBat { position:fixed; font-size:1.8rem; z-index:101; pointer-events:none; animation: batFly 18s linear infinite; filter: drop-shadow(0 0 6px rgba(200,0,0,0.4)); }
+    .storyBat { position:fixed; font-size:1.8rem; z-index:101; pointer-events:none; animation: batFly 18s linear infinite; filter: drop-shadow(0 0 6px rgba(230,0,0,0.4)); }
     @keyframes spiderDrop { 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(45px);} }
     .spider { position:fixed; top:0; right:12%; z-index:101; pointer-events:none; animation: spiderDrop 6s ease-in-out infinite; text-align:center; font-size:1.2rem; }
     .spider .thread { width:1px; height:60px; background:rgba(200,200,200,0.35); margin:0 auto; }
     @keyframes fogMove { 0%{ transform:translateX(-25%);} 100%{ transform:translateX(25%);} }
-    .fog { position:fixed; bottom:-30px; left:-20%; width:140%; height:130px; z-index:101; pointer-events:none; background: radial-gradient(ellipse at center, rgba(150,80,80,0.13), transparent 70%); animation: fogMove 9s ease-in-out infinite alternate; }
+    .fog { position:fixed; bottom:-30px; left:-20%; width:140%; height:130px; z-index:101; pointer-events:none; background: radial-gradient(ellipse at center, rgba(200,30,30,0.18), transparent 70%); animation: fogMove 9s ease-in-out infinite alternate; }
     @keyframes darkPulse { 0%,100%{ box-shadow: inset 0 0 120px rgba(0,0,0,0.85);} 50%{ box-shadow: inset 0 0 200px rgba(0,0,0,0.97);} }
     .vignette { position:fixed; inset:0; z-index:99; pointer-events:none; animation: darkPulse 7s infinite; }
     @keyframes eyesBlink { 0%,88%,100%{opacity:0} 90%,96%{opacity:0.8} }
@@ -820,38 +825,39 @@ export default function Home() {
       {story.poster ? (
         <img src={story.poster} alt={story.title} style={{ width: '100%', height: '190px', objectFit: 'cover', display: 'block' }} />
       ) : (
-        <div style={{ height: '190px', background: 'linear-gradient(135deg, #1a0808, #330a0a)', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '2.5rem' }}>{story.audio ? '🔊' : '🎃'}</div>
+        <div style={{ height: '190px', background: 'linear-gradient(135deg, #1a0505, #330a0a)', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '2.5rem' }}>{story.audio ? '🔊' : '🎃'}</div>
       )}
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', padding: '25px 8px 6px' }}>
         <h3 style={{ color: '#fff', margin: 0, fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{story.title}</h3>
-        <p style={{ color: '#ee5555', margin: '3px 0 0', fontSize: '0.68rem' }}>👁️ {formatViews(story.views)}{story.fearCount ? ' • 😱 ' + fearPct(story) + '%' : ''}</p>
+        <p style={{ color: '#ff7777', margin: '3px 0 0', fontSize: '0.68rem' }}>👁️ {formatViews(story.views)}{story.fearCount ? ' • 😱 ' + fearPct(story) + '%' : ''}</p>
       </div>
       {isNew(story) && <span className="newBadge" style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#e50914', color: '#fff', borderRadius: '4px', padding: '2px 7px', fontSize: '0.65rem', fontWeight: 'bold' }}>NEW</span>}
-      {story.price > 0 && !isUnlocked(story) && <span style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: 'rgba(200,0,0,0.95)', color: '#fff', borderRadius: '20px', padding: '3px 8px', fontSize: '0.68rem', fontWeight: 'bold' }}>🔒 ₹{story.price}</span>}
+      {story.price > 0 && !isUnlocked(story) && <span style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: 'rgba(230,0,0,0.95)', color: '#fff', borderRadius: '20px', padding: '3px 8px', fontSize: '0.68rem', fontWeight: 'bold' }}>🔒 ₹{story.price}</span>}
     </div>
   );
-
-  return (
+    return (
     <div style={{ backgroundColor: C.bg, color: C.text, minHeight: '100vh', fontFamily: 'sans-serif', transition: 'background-color 0.4s, color 0.4s' }}>
-      <Head><title>साया - खौफ़ की हिंदी कहानियाँ</title></Head>
+      <Head><title>साया - खौफ़ की हिंदी कहानियाँाँ </title></Head>
       <style>{css}</style>
 
+      {/* 👻 SPOOKY WELCOME TOAST */}
       {showWelcome && (
         <div style={{ position: 'fixed', top: '15px', left: '50%', transform: 'translateX(-50%)', zIndex: 2000, width: '92%', maxWidth: '400px' }}>
-          <div className="wlBox" style={{ background: 'linear-gradient(135deg, #1a0505, #2a0808)', border: '1px solid #cc0000', borderRadius: '14px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 6px 25px rgba(200,0,0,0.35)' }}>
+          <div className="wlBox" style={{ background: 'linear-gradient(135deg, #1a0505, #2a0808)', border: '1px solid #e60000', borderRadius: '14px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 6px 25px rgba(230,0,0,0.35)' }}>
             <span className="wlGhost" style={{ fontSize: '1.8rem' }}>👻</span>
             <div style={{ flex: 1 }}>
-              <p style={{ color: '#ee5555', margin: 0, fontSize: '0.85rem', fontWeight: 'bold', fontFamily: 'Georgia, serif' }}>साया में आपका स्वागत है...</p>
-              <p style={{ color: '#aa7777', margin: '2px 0 0', fontSize: '0.75rem' }}>आज की नई डरावनी कहानियाँ तैयार हैं 🌙</p>
+              <p style={{ color: '#ff7777', margin: 0, fontSize: '0.85rem', fontWeight: 'bold', fontFamily: 'Georgia, serif' }}>साया में आपका स्वागत है...</p>
+              <p style={{ color: '#c98a8a', margin: '2px 0 0', fontSize: '0.75rem' }}>आज की नई डरावनी कहानियाँ तैयार हैं 🌙</p>
             </div>
-            <button onClick={() => setShowWelcome(false)} style={{ backgroundColor: '#cc0000', color: '#fff', border: 'none', borderRadius: '15px', padding: '8px 14px', fontSize: '0.78rem', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>🎧 सुनाओ!</button>
-            <button onClick={() => setShowWelcome(false)} style={{ backgroundColor: 'transparent', color: '#886655', border: 'none', fontSize: '1rem', cursor: 'pointer', padding: '0 2px' }}>✕</button>
+            <button onClick={() => setShowWelcome(false)} style={{ backgroundColor: '#e60000', color: '#fff', border: 'none', borderRadius: '15px', padding: '8px 14px', fontSize: '0.78rem', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>🎧 सुनाओ!</button>
+            <button onClick={() => setShowWelcome(false)} style={{ backgroundColor: 'transparent', color: '#886644', border: 'none', fontSize: '1rem', cursor: 'pointer', padding: '0 2px' }}>✕</button>
           </div>
         </div>
       )}
 
+      {/* 🔔 Push Banner (sirf supported browsers me dikhega) */}
       {showPushBanner && (
-        <div style={{ background: 'linear-gradient(90deg, #cc0000, #660000)', color: '#fff', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1000, position: 'relative', boxShadow: '0 4px 15px rgba(0,0,0,0.5)', fontFamily: 'Georgia, serif' }}>
+        <div style={{ background: 'linear-gradient(90deg, #e60000, #660000)', color: '#fff', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1000, position: 'relative', boxShadow: '0 4px 15px rgba(0,0,0,0.5)', fontFamily: 'Georgia, serif' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '1.5rem' }}>💀</span>
             <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 'bold' }}>नई खौफ़नाक कहानियों के लाइव अलर्ट चाहिए?</p>
@@ -867,36 +873,36 @@ export default function Home() {
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', position: 'sticky', top: 0, zIndex: 50, background: C.nav, backdropFilter: 'blur(8px)', borderBottom: '1px solid ' + C.navBorder }}>
           <h1 className="sayaTitle" style={{ margin: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1 }}>
-            <svg viewBox="0 0 300 110" width="170" height="62" style={{ filter: 'drop-shadow(0 0 12px rgba(200,0,0,0.8))' }}>
-              <defs>
-                <linearGradient id="bloodGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ff2222" />
-                  <stop offset="50%" stopColor="#cc0000" />
-                  <stop offset="100%" stopColor="#660000" />
-                </linearGradient>
-                <filter id="glow">
-                  <feGaussianBlur stdDeviation="3" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-              <text x="150" y="55" textAnchor="middle" fontFamily="'Impact', 'Arial Black', sans-serif" fontSize="68" fontWeight="bold" fill="url(#bloodGrad)" filter="url(#glow)" letterSpacing="4">SAYA</text>
-              <path d="M 70 85 Q 70 95 65 108 M 120 85 Q 120 100 115 112 M 180 85 Q 180 97 175 110 M 230 85 Q 230 95 225 108" stroke="#990000" strokeWidth="5" strokeLinecap="round" fill="none" />
-              <circle cx="65" cy="111" r="5" fill="#990000" />
-              <circle cx="115" cy="115" r="6" fill="#990000" />
-              <circle cx="175" cy="113" r="5" fill="#990000" />
-              <circle cx="225" cy="111" r="6" fill="#990000" />
-            </svg>
-            <span style={{ fontSize: '0.8rem', color: '#ff3333', fontFamily: 'sans-serif', fontWeight: 'bold', letterSpacing: '2px', marginTop: '4px', textShadow: '0 0 8px rgba(200,0,0,0.8)' }}>
-              Hindi Horror Stories • Read &amp; Write
-            </span>
-          </h1>
+  <svg viewBox="0 0 300 110" width="170" height="62" style={{ filter: 'drop-shadow(0 0 12px rgba(255,0,0,0.8))' }}>
+    <defs>
+      <linearGradient id="bloodGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#ff2222" />
+        <stop offset="50%" stopColor="#cc0000" />
+        <stop offset="100%" stopColor="#660000" />
+      </linearGradient>
+      <filter id="glow">
+        <feGaussianBlur stdDeviation="3" result="blur" />
+        <feMerge>
+          <feMergeNode in="blur" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
+    </defs>
+    <text x="150" y="55" textAnchor="middle" fontFamily="'Impact', 'Arial Black', sans-serif" fontSize="68" fontWeight="bold" fill="url(#bloodGrad)" filter="url(#glow)" letterSpacing="4">SAYA</text>
+    <path d="M 70 85 Q 70 95 65 108 M 120 85 Q 120 100 115 112 M 180 85 Q 180 97 175 110 M 230 85 Q 230 95 225 108" stroke="#990000" strokeWidth="5" strokeLinecap="round" fill="none" />
+    <circle cx="65" cy="111" r="5" fill="#990000" />
+    <circle cx="115" cy="115" r="6" fill="#990000" />
+    <circle cx="175" cy="113" r="5" fill="#990000" />
+    <circle cx="225" cy="111" r="6" fill="#990000" />
+  </svg>
+  <span style={{ fontSize: '0.8rem', color: '#ff5555', fontFamily: 'sans-serif', fontWeight: 'bold', letterSpacing: '2px', marginTop: '4px', textShadow: '0 0 8px rgba(255,0,0,0.8)' }}>
+    Hindi Horror Stories • Read &amp; Write
+  </span>
+</h1>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <button onClick={toggleTheme} style={{ padding: '6px 10px', borderRadius: '18px', cursor: 'pointer', fontSize: '1rem', backgroundColor: 'transparent', border: '1px solid ' + C.border }}>{dk ? '☀️' : '🌙'}</button>
-            <button onClick={() => setLang('hindi')} style={{ padding: '6px 14px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: lang === 'hindi' ? '#cc0000' : 'transparent', color: lang === 'hindi' ? '#fff' : C.sub, border: lang === 'hindi' ? 'none' : '1px solid ' + C.border }}>हिंदी</button>
-            <button onClick={() => setLang('english')} style={{ padding: '6px 14px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: lang === 'english' ? '#cc0000' : 'transparent', color: lang === 'english' ? '#fff' : C.sub, border: lang === 'english' ? 'none' : '1px solid ' + C.border }}>Eng</button>
+            <button onClick={() => setLang('hindi')} style={{ padding: '6px 14px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: lang === 'hindi' ? '#e60000' : 'transparent', color: lang === 'hindi' ? '#fff' : C.sub, border: lang === 'hindi' ? 'none' : '1px solid ' + C.border }}>हिंदी</button>
+            <button onClick={() => setLang('english')} style={{ padding: '6px 14px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: lang === 'english' ? '#e60000' : 'transparent', color: lang === 'english' ? '#fff' : C.sub, border: lang === 'english' ? 'none' : '1px solid ' + C.border }}>Eng</button>
             {!isAdmin && <button onClick={() => setShowLogin(true)} style={{ padding: '6px 10px', backgroundColor: 'transparent', color: C.sub, border: '1px solid ' + C.border, borderRadius: '18px', cursor: 'pointer', fontSize: '0.7rem', opacity: 0.6 }}>Admin</button>}
             {isAdmin && <button onClick={() => setShowAdminMenu(true)} style={{ ...orgBtn, padding: '7px 14px', fontSize: '0.8rem' }}>👑 Admin</button>}
           </div>
@@ -907,25 +913,25 @@ export default function Home() {
           <div style={{ marginTop: '15px' }}>
             <input type="text" placeholder="🔍 कहानी खोजो..." value={searchQ} onChange={(e) => setSearchQ(e.target.value)} style={{ width: '100%', padding: '12px 16px', backgroundColor: C.card, color: C.text, border: '1px solid ' + C.border, borderRadius: '25px', boxSizing: 'border-box', fontSize: '0.95rem', outline: 'none' }} />
             <div className="row" style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-              <button onClick={() => setCatFilter('all')} style={{ padding: '7px 16px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', flexShrink: 0, backgroundColor: catFilter === 'all' ? '#cc0000' : C.card, color: catFilter === 'all' ? '#fff' : C.sub, border: catFilter === 'all' ? 'none' : '1px solid ' + C.border }}>🎃 सभी</button>
+              <button onClick={() => setCatFilter('all')} style={{ padding: '7px 16px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', flexShrink: 0, backgroundColor: catFilter === 'all' ? '#e60000' : C.card, color: catFilter === 'all' ? '#fff' : C.sub, border: catFilter === 'all' ? 'none' : '1px solid ' + C.border }}>🎃 सभी</button>
               {CATEGORIES.map(ct => (
-                <button key={ct} onClick={() => setCatFilter(ct)} style={{ padding: '7px 16px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', flexShrink: 0, backgroundColor: catFilter === ct ? '#cc0000' : C.card, color: catFilter === ct ? '#fff' : C.sub, border: catFilter === ct ? 'none' : '1px solid ' + C.border }}>{ct}</button>
+                <button key={ct} onClick={() => setCatFilter(ct)} style={{ padding: '7px 16px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', flexShrink: 0, backgroundColor: catFilter === ct ? '#e60000' : C.card, color: catFilter === ct ? '#fff' : C.sub, border: catFilter === ct ? 'none' : '1px solid ' + C.border }}>{ct}</button>
               ))}
             </div>
           </div>
 
           {!hasPass && !isAdmin && (
-            <div onClick={buyPass} style={{ marginTop: '12px', background: 'linear-gradient(135deg, #2a0505, #150505)', border: '2px solid #aa0000', borderRadius: '14px', padding: '14px 18px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 0 20px rgba(170,0,0,0.25)' }}>
+            <div onClick={buyPass} style={{ marginTop: '12px', background: 'linear-gradient(135deg, #3d0000, #1a0000)', border: '2px solid #ffaa00', borderRadius: '14px', padding: '14px 18px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 0 20px rgba(255,50,50,0.25)' }}>
               <div>
-                <p style={{ color: '#ee3333', margin: 0, fontWeight: 'bold', fontSize: '1rem' }}>👑 Premium Pass — सिर्फ ₹99</p>
-                <p style={{ color: '#aa7777', margin: '3px 0 0', fontSize: '0.78rem' }}>सभी paid कहानियाँ हमेशा के लिए UNLOCK — आने वाली भी!</p>
+                <p style={{ color: '#ffcc44', margin: 0, fontWeight: 'bold', fontSize: '1rem' }}>👑 Premium Pass — सिर्फ ₹99</p>
+                <p style={{ color: '#c98a8a', margin: '3px 0 0', fontSize: '0.78rem' }}>सभी paid कहानियाँ हमेशा के लिए UNLOCK — आने वाली भी!</p>
               </div>
-              <span style={{ backgroundColor: '#aa0000', color: '#fff', padding: '9px 18px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>₹99 लो</span>
+              <span style={{ backgroundColor: '#ffaa00', color: '#000', padding: '9px 18px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>₹99 लो</span>
             </div>
           )}
           {hasPass && (
-            <div style={{ marginTop: '12px', background: 'linear-gradient(135deg, #2a0505, #150505)', border: '2px solid #aa0000', borderRadius: '14px', padding: '10px 18px', textAlign: 'center' }}>
-              <p style={{ color: '#ee3333', margin: 0, fontWeight: 'bold', fontSize: '0.95rem' }}>👑 आप PREMIUM MEMBER हो — सभी कहानियाँ UNLOCKED! 🎉</p>
+            <div style={{ marginTop: '12px', background: 'linear-gradient(135deg, #3d0000, #1a0000)', border: '2px solid #ffaa00', borderRadius: '14px', padding: '10px 18px', textAlign: 'center' }}>
+              <p style={{ color: '#ffcc44', margin: 0, fontWeight: 'bold', fontSize: '0.95rem' }}>👑 आप PREMIUM MEMBER हो — सभी कहानियाँ UNLOCKED! 🎉</p>
             </div>
           )}
 
@@ -936,12 +942,12 @@ export default function Home() {
               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px' }}>
                 {isNew(hero) && <span style={{ backgroundColor: '#e50914', color: '#fff', borderRadius: '4px', padding: '3px 9px', fontSize: '0.7rem', fontWeight: 'bold' }}>NEW</span>}
                 <h2 style={{ color: '#fff', margin: '8px 0 4px', fontSize: '1.7rem', fontFamily: 'Georgia, serif', textShadow: '2px 2px 10px #000' }}>{hero.title}</h2>
-                <p style={{ color: '#ee5555', margin: '0 0 12px', fontSize: '0.85rem' }}>👁️ {formatViews(hero.views)} {isEng ? 'views' : 'बार देखी गई'}{hero.fearCount ? ' • 😱 ' + fearPct(hero) + '%' : ''}{hero.price > 0 && !isUnlocked(hero) ? ' • 🔒 ₹' + hero.price : ''}</p>
-                <button style={{ ...orgBtn, padding: '11px 30px', fontSize: '1rem', boxShadow: '0 0 20px rgba(200,0,0,0.5)' }}>{hero.audio ? '▶ ' + (isEng ? 'Listen Now' : 'अभी सुनो') : '📖 ' + (isEng ? 'Read Now' : 'अभी पढ़ो')}</button>
+                <p style={{ color: '#ff7777', margin: '0 0 12px', fontSize: '0.85rem' }}>👁️ {formatViews(hero.views)} {isEng ? 'views' : 'बार देखी गई'}{hero.fearCount ? ' • 😱 ' + fearPct(hero) + '%' : ''}{hero.price > 0 && !isUnlocked(hero) ? ' • 🔒 ₹' + hero.price : ''}</p>
+                <button style={{ ...orgBtn, padding: '11px 30px', fontSize: '1rem', boxShadow: '0 0 20px rgba(230,0,0,0.5)' }}>{hero.audio ? '▶ ' + (isEng ? 'Listen Now' : 'अभी सुनो') : '📖 ' + (isEng ? 'Read Now' : 'अभी पढ़ो')}</button>
               </div>
               <div style={{ position: 'absolute', bottom: '12px', right: '15px', display: 'flex', gap: '6px' }}>
                 {heroList.map((_, i) => (
-                  <div key={i} style={{ width: i === heroIdx % heroList.length ? '20px' : '8px', height: '8px', borderRadius: '4px', backgroundColor: i === heroIdx % heroList.length ? '#cc0000' : 'rgba(255,255,255,0.35)', transition: 'all 0.3s' }}></div>
+                  <div key={i} style={{ width: i === heroIdx % heroList.length ? '20px' : '8px', height: '8px', borderRadius: '4px', backgroundColor: i === heroIdx % heroList.length ? '#e60000' : 'rgba(255,255,255,0.35)', transition: 'all 0.3s' }}></div>
                 ))}
               </div>
             </div>
@@ -983,8 +989,8 @@ export default function Home() {
             <div style={{ marginTop: '10px' }}>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '5px', flexWrap: 'wrap' }}>
                 <h2 style={{ color: C.text, fontSize: '1.2rem', margin: 0 }}>{isEng ? 'All Stories' : 'सभी कहानियाँ'}</h2>
-                <button onClick={() => setTab('audio')} style={{ padding: '6px 16px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: tab === 'audio' ? '#cc0000' : C.card, color: tab === 'audio' ? '#fff' : C.sub, border: tab === 'audio' ? 'none' : '1px solid ' + C.border }}>🔊 {isEng ? 'Listen' : 'सुनो'}</button>
-                <button onClick={() => setTab('text')} style={{ padding: '6px 16px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: tab === 'text' ? '#cc0000' : C.card, color: tab === 'text' ? '#fff' : C.sub, border: tab === 'text' ? 'none' : '1px solid ' + C.border }}>📖 {isEng ? 'Read' : 'पढ़ो'}</button>
+                <button onClick={() => setTab('audio')} style={{ padding: '6px 16px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: tab === 'audio' ? '#e60000' : C.card, color: tab === 'audio' ? '#fff' : C.sub, border: tab === 'audio' ? 'none' : '1px solid ' + C.border }}>🔊 {isEng ? 'Listen' : 'सुनो'}</button>
+                <button onClick={() => setTab('text')} style={{ padding: '6px 16px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: tab === 'text' ? '#e60000' : C.card, color: tab === 'text' ? '#fff' : C.sub, border: tab === 'text' ? 'none' : '1px solid ' + C.border }}>📖 {isEng ? 'Read' : 'पढ़ो'}</button>
               </div>
 
               {showList.length === 0 && <p style={{ color: C.sub, textAlign: 'center', padding: '30px' }}>{isEng ? 'No stories here yet...' : 'अभी कोई कहानी नहीं...'}</p>}
@@ -997,22 +1003,22 @@ export default function Home() {
                         <img src={story.poster} alt={story.title} style={{ width: '100%', height: '210px', objectFit: 'cover', display: 'block' }} />
                         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', padding: '28px 9px 7px' }}>
                           <h3 style={{ color: '#fff', margin: 0, fontSize: '0.9rem', textShadow: '1px 1px 4px #000' }}>{story.title}</h3>
-                          <p style={{ color: '#ee5555', margin: '3px 0 0', fontSize: '0.7rem' }}>👁️ {formatViews(story.views)}{story.fearCount ? ' • 😱 ' + fearPct(story) + '%' : ''}</p>
+                          <p style={{ color: '#ff7777', margin: '3px 0 0', fontSize: '0.7rem' }}>👁️ {formatViews(story.views)}{story.fearCount ? ' • 😱 ' + fearPct(story) + '%' : ''}</p>
                         </div>
                       </div>
                     ) : (
-                      <div style={{ height: '210px', background: 'linear-gradient(135deg, #1a0808, #330a0a)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '10px' }}>
+                      <div style={{ height: '210px', background: 'linear-gradient(135deg, #1a0505, #330a0a)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '10px' }}>
                         <span style={{ fontSize: '2.8rem' }}>{story.audio ? '🔊' : '🎃'}</span>
                         <h3 style={{ color: '#fff', margin: '10px 0 0', fontSize: '0.9rem', textAlign: 'center' }}>{story.title}</h3>
-                        <p style={{ color: '#ee5555', margin: '4px 0 0', fontSize: '0.7rem' }}>👁️ {formatViews(story.views)}</p>
+                        <p style={{ color: '#ff7777', margin: '4px 0 0', fontSize: '0.7rem' }}>👁️ {formatViews(story.views)}</p>
                       </div>
                     )}
                     {isNew(story) && <span className="newBadge" style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: '#e50914', color: '#fff', borderRadius: '4px', padding: '2px 7px', fontSize: '0.65rem', fontWeight: 'bold' }}>NEW</span>}
-                    {story.price > 0 && !isUnlocked(story) && <span style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: 'rgba(200,0,0,0.95)', color: '#fff', borderRadius: '20px', padding: '3px 9px', fontSize: '0.7rem', fontWeight: 'bold' }}>🔒 ₹{story.price}</span>}
+                    {story.price > 0 && !isUnlocked(story) && <span style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: 'rgba(230,0,0,0.95)', color: '#fff', borderRadius: '20px', padding: '3px 9px', fontSize: '0.7rem', fontWeight: 'bold' }}>🔒 ₹{story.price}</span>}
                     {story.price > 0 && isUnlocked(story) && !isAdmin && <span style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: 'rgba(0,170,0,0.9)', color: '#fff', borderRadius: '20px', padding: '3px 9px', fontSize: '0.7rem' }}>{hasPass ? '👑' : '✅'}</span>}
                     {isAdmin && (
                       <div style={{ position: 'absolute', bottom: '8px', right: '8px', display: 'flex', gap: '6px' }}>
-                        <button onClick={(e) => { e.stopPropagation(); startEdit(story); }} style={{ backgroundColor: 'rgba(200,0,0,0.9)', color: '#fff', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer' }}>✏️</button>
+                        <button onClick={(e) => { e.stopPropagation(); startEdit(story); }} style={{ backgroundColor: 'rgba(255,170,0,0.9)', color: '#000', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer' }}>✏️</button>
                         <button onClick={(e) => { e.stopPropagation(); removeStory(story.id); }} style={{ backgroundColor: 'rgba(0,0,0,0.7)', color: '#ff4444', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer' }}>🗑️</button>
                       </div>
                     )}
@@ -1025,11 +1031,11 @@ export default function Home() {
           <div style={{ textAlign: 'center', padding: '30px 0' }}>
             <p style={{ color: C.footer, fontSize: '0.8rem', margin: '0 0 10px' }}>© साया - खौफ़ की हिंदी कहानियाँ 🎃 • "डर सिर्फ एक कहानी की दूरी पर है..."</p>
             <p style={{ fontSize: '0.75rem', margin: 0 }}>
-              <a href="/policy" style={{ color: '#ee4444', textDecoration: 'none', margin: '0 8px' }}>About Us</a>•
-              <a href="/policy" style={{ color: '#ee4444', textDecoration: 'none', margin: '0 8px' }}>Contact</a>•
-              <a href="/policy" style={{ color: '#ee4444', textDecoration: 'none', margin: '0 8px' }}>Privacy Policy</a>•
-              <a href="/policy" style={{ color: '#ee4444', textDecoration: 'none', margin: '0 8px' }}>Terms</a>•
-              <a href="/policy" style={{ color: '#ee4444', textDecoration: 'none', margin: '0 8px' }}>Refund Policy</a>
+              <a href="/policy" style={{ color: '#ff3333', textDecoration: 'none', margin: '0 8px' }}>About Us</a>•
+              <a href="/policy" style={{ color: '#ff3333', textDecoration: 'none', margin: '0 8px' }}>Contact</a>•
+              <a href="/policy" style={{ color: '#ff3333', textDecoration: 'none', margin: '0 8px' }}>Privacy Policy</a>•
+              <a href="/policy" style={{ color: '#ff3333', textDecoration: 'none', margin: '0 8px' }}>Terms</a>•
+              <a href="/policy" style={{ color: '#ff3333', textDecoration: 'none', margin: '0 8px' }}>Refund Policy</a>
             </p>
           </div>
         </div>
@@ -1037,26 +1043,26 @@ export default function Home() {
 
       {!blurBg && (
         <>
-          <button onClick={() => { setShowWheel(true); setWheelMsg(''); }} className="wobble" style={{ position: 'fixed', bottom: '20px', left: '15px', zIndex: 90, backgroundColor: dk ? '#1a0808' : '#fff', border: '2px solid #cc0000', borderRadius: '50%', width: '56px', height: '56px', fontSize: '1.6rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(200,0,0,0.4)' }}>🎰</button>
-          <button onClick={toggleAmb} style={{ position: 'fixed', bottom: '20px', right: '15px', zIndex: 90, backgroundColor: ambOn ? '#cc0000' : (dk ? '#1a0808' : '#fff'), border: '2px solid #cc0000', borderRadius: '50%', width: '56px', height: '56px', fontSize: '1.4rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(200,0,0,0.4)' }}>{ambOn ? '🔊' : '🔇'}</button>
-          <button onClick={installApp} style={{ position: 'fixed', bottom: '85px', right: '15px', zIndex: 90, backgroundColor: '#cc0000', color: '#fff', border: 'none', borderRadius: '25px', padding: '12px 18px', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 0 20px rgba(200,0,0,0.6)' }}>📲 App Install करो</button>
+          <button onClick={() => { setShowWheel(true); setWheelMsg(''); }} className="wobble" style={{ position: 'fixed', bottom: '20px', left: '15px', zIndex: 90, backgroundColor: dk ? '#140a0a' : '#fff', border: '2px solid #e60000', borderRadius: '50%', width: '56px', height: '56px', fontSize: '1.6rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(230,0,0,0.4)' }}>🎰</button>
+          <button onClick={toggleAmb} style={{ position: 'fixed', bottom: '20px', right: '15px', zIndex: 90, backgroundColor: ambOn ? '#e60000' : (dk ? '#140a0a' : '#fff'), border: '2px solid #e60000', borderRadius: '50%', width: '56px', height: '56px', fontSize: '1.4rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(230,0,0,0.4)' }}>{ambOn ? '🔊' : '🔇'}</button>
+          <button onClick={installApp} style={{ position: 'fixed', bottom: '85px', right: '15px', zIndex: 90, backgroundColor: '#e60000', color: '#fff', border: 'none', borderRadius: '25px', padding: '12px 18px', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 0 20px rgba(230,0,0,0.6)' }}>📲 App Install करो</button>
           <button onClick={() => setShowSubmit(true)} style={{ position: 'fixed', bottom: '85px', left: '15px', zIndex: 90, backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '25px', padding: '12px 16px', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 0 20px rgba(26,92,42,0.6)' }}>✍️ अपनी कहानी भेजो</button>
         </>
       )}
 
       {showAdminMenu && isAdmin && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 125, padding: '20px' }} onClick={() => setShowAdminMenu(false)}>
-          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#1a0808', padding: '25px', borderRadius: '16px', border: '2px solid #cc0000', width: '100%', maxWidth: '340px', boxShadow: '0 0 40px rgba(200,0,0,0.3)' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#140a0a', padding: '25px', borderRadius: '16px', border: '2px solid #e60000', width: '100%', maxWidth: '340px', boxShadow: '0 0 40px rgba(230,0,0,0.3)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
-              <h2 style={{ color: '#ee4444', margin: 0, fontSize: '1.3rem' }}>👑 Admin Panel</h2>
+              <h2 style={{ color: '#ff3333', margin: 0, fontSize: '1.3rem' }}>👑 Admin Panel</h2>
               <button onClick={() => setShowAdminMenu(false)} style={{ backgroundColor: '#331818', color: '#fff', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer' }}>✕</button>
             </div>
-            <button onClick={() => { setShowAdminMenu(false); setShowPanel(true); }} style={{ width: '100%', padding: '15px', marginBottom: '10px', backgroundColor: '#cc0000', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: 'bold', textAlign: 'left' }}>📝 Nayi Story Add Karo</button>
-            <button onClick={() => { setShowAdminMenu(false); loadPending(); }} style={{ width: '100%', padding: '15px', marginBottom: '10px', backgroundColor: '#aa0000', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: 'bold', textAlign: 'left' }}>⏳ Pending Stories (Review)</button>
+            <button onClick={() => { setShowAdminMenu(false); setShowPanel(true); }} style={{ width: '100%', padding: '15px', marginBottom: '10px', backgroundColor: '#e60000', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: 'bold', textAlign: 'left' }}>📝 Nayi Story Add Karo</button>
+            <button onClick={() => { setShowAdminMenu(false); loadPending(); }} style={{ width: '100%', padding: '15px', marginBottom: '10px', backgroundColor: '#ffaa00', color: '#000', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: 'bold', textAlign: 'left' }}>⏳ Pending Stories (Review)</button>
             <button onClick={() => { setShowAdminMenu(false); sendTestNotification(); }} style={{ width: '100%', padding: '15px', marginBottom: '10px', backgroundColor: '#5c00a3', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: 'bold', textAlign: 'left' }}>📢 Push Notification Bhejo</button>
             <button onClick={async () => { await signOut(auth); setShowAdminMenu(false); alert('Logout ho gaye! 👋'); }} style={{ width: '100%', padding: '15px', backgroundColor: '#8b0000', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', cursor: 'pointer', fontWeight: 'bold', textAlign: 'left' }}>🚪 Logout</button>
             <div style={{ marginTop: '15px', padding: '12px', borderRadius: '8px', backgroundColor: '#000', fontSize: '0.78rem', color: '#aaa', border: '1px solid #333', textAlign: 'left' }}>
-               <p style={{ margin: '0 0 5px', color: '#ee4444', fontWeight: 'bold' }}>📡 Notification Status:</p>
+               <p style={{ margin: '0 0 5px', color: '#ffaa00', fontWeight: 'bold' }}>📡 Notification Status:</p>
                <div>Service Worker: <span style={{ color: '#fff' }}>{debugSW}</span></div>
                <div>Permission: <span style={{ color: '#fff' }}>{debugPermission}</span></div>
                <div>Subscribers: <span style={{ color: '#00ff00', fontWeight: 'bold' }}>{debugTokenCount} users</span></div>
@@ -1067,9 +1073,9 @@ export default function Home() {
 
       {showSubmit && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', zIndex: 125, padding: '20px', overflowY: 'auto' }} onClick={() => setShowSubmit(false)}>
-          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#1a0808', padding: '25px', borderRadius: '16px', border: '2px solid #1a5c2a', width: '100%', maxWidth: '500px', margin: '20px 0' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#140a0a', padding: '25px', borderRadius: '16px', border: '2px solid #1a5c2a', width: '100%', maxWidth: '500px', margin: '20px 0' }}>
             <h2 style={{ color: '#4caf50', marginTop: 0 }}>✍️ अपनी डरावनी कहानी भेजो</h2>
-            <p style={{ color: '#885555', fontSize: '0.85rem', marginTop: '-8px' }}>आपकी आपबीती या कहानी - admin check karke publish karega, आपके नाम के साथ! 👻</p>
+            <p style={{ color: '#8a5555', fontSize: '0.85rem', marginTop: '-8px' }}>आपकी आपबीती या कहानी - admin check karke publish karega, आपके नाम के साथ! 👻</p>
             <input type="text" placeholder="आपका नाम (yahi publish hoga)" value={subName} onChange={(e) => setSubName(e.target.value)} style={inputStyle} />
             <input type="text" placeholder="कहानी का Title" value={subTitle} onChange={(e) => setSubTitle(e.target.value)} style={inputStyle} />
             <textarea placeholder="अपनी पूरी कहानी यहाँ लिखो... (kam se kam 100 akshar)" value={subText} onChange={(e) => setSubText(e.target.value)} rows="10" style={{ ...inputStyle, resize: 'vertical' }} />
@@ -1082,17 +1088,17 @@ export default function Home() {
 
       {showPending && isAdmin && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', zIndex: 125, padding: '20px', overflowY: 'auto' }}>
-          <div style={{ backgroundColor: '#1a0808', padding: '25px', borderRadius: '16px', border: '2px solid #aa0000', width: '100%', maxWidth: '600px', margin: '20px 0' }}>
+          <div style={{ backgroundColor: '#140a0a', padding: '25px', borderRadius: '16px', border: '2px solid #ffaa00', width: '100%', maxWidth: '600px', margin: '20px 0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ color: '#ee3333', margin: 0 }}>⏳ Pending Stories ({pendingSubs.length})</h2>
+              <h2 style={{ color: '#ffaa00', margin: 0 }}>⏳ Pending Stories ({pendingSubs.length})</h2>
               <button onClick={() => setShowPending(false)} style={{ backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '50%', width: '35px', height: '35px', cursor: 'pointer' }}>✕</button>
             </div>
             {pendingSubs.length === 0 && <p style={{ color: '#888', textAlign: 'center', padding: '30px' }}>Koi pending story nahi hai! 🎉</p>}
             {pendingSubs.map(sub => (
-              <div key={sub.id} style={{ backgroundColor: '#0d0505', borderRadius: '12px', padding: '15px', marginTop: '15px', border: '1px solid #331515' }}>
-                <h3 style={{ color: '#ee4444', margin: '0 0 5px' }}>{sub.title}</h3>
+              <div key={sub.id} style={{ backgroundColor: '#0d0d10', borderRadius: '12px', padding: '15px', marginTop: '15px', border: '1px solid #333' }}>
+                <h3 style={{ color: '#ff3333', margin: '0 0 5px' }}>{sub.title}</h3>
                 <p style={{ color: '#4caf50', fontSize: '0.85rem', margin: '0 0 10px' }}>✍️ {sub.writer} • 📅 {sub.date}</p>
-                <div style={{ color: '#ccc', fontSize: '0.9rem', lineHeight: '1.7', maxHeight: '200px', overflowY: 'auto', backgroundColor: '#140808', padding: '12px', borderRadius: '8px', whiteSpace: 'pre-wrap' }}>{sub.text}</div>
+                <div style={{ color: '#ccc', fontSize: '0.9rem', lineHeight: '1.7', maxHeight: '200px', overflowY: 'auto', backgroundColor: '#14141a', padding: '12px', borderRadius: '8px', whiteSpace: 'pre-wrap' }}>{sub.text}</div>
                 <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
                   <button onClick={() => approveSub(sub)} style={{ flex: 1, padding: '12px', backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>✅ Approve & Publish</button>
                   <button onClick={() => rejectSub(sub.id)} style={{ flex: 1, padding: '12px', backgroundColor: '#8b0000', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>❌ Reject</button>
@@ -1105,15 +1111,15 @@ export default function Home() {
 
       {showIosGuide && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 130, padding: '20px' }} onClick={() => setShowIosGuide(false)}>
-          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#1a0808', padding: '25px', borderRadius: '16px', border: '2px solid #cc0000', maxWidth: '340px', textAlign: 'center' }}>
-            <h2 style={{ color: '#ee4444', marginTop: 0 }}>📲 iPhone में Install करो</h2>
-            <div style={{ textAlign: 'left', color: '#e8c8c8', fontSize: '0.95rem', lineHeight: '2' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#140a0a', padding: '25px', borderRadius: '16px', border: '2px solid #e60000', maxWidth: '340px', textAlign: 'center' }}>
+            <h2 style={{ color: '#ff3333', marginTop: 0 }}>📲 iPhone में Install करो</h2>
+            <div style={{ textAlign: 'left', color: '#e8d5b8', fontSize: '0.95rem', lineHeight: '2' }}>
               <p>1️⃣ नीचे <b>Share बटन</b> दबाओ (⬆️ वाला box)</p>
               <p>2️⃣ नीचे scroll करो</p>
               <p>3️⃣ <b>"Add to Home Screen"</b> दबाओ</p>
               <p>4️⃣ <b>"Add"</b> दबाओ — हो गया! 🎉</p>
             </div>
-            <p style={{ color: '#885555', fontSize: '0.8rem' }}>⚠️ Safari browser में ही चलेगा!</p>
+            <p style={{ color: '#8a5555', fontSize: '0.8rem' }}>⚠️ Safari browser में ही चलेगा!</p>
             <button onClick={() => setShowIosGuide(false)} style={{ ...orgBtn, padding: '10px 30px' }}>समझ गया ✅</button>
           </div>
         </div>
@@ -1121,31 +1127,31 @@ export default function Home() {
 
       {showWheel && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 120, padding: '20px' }} onClick={() => !spinning && setShowWheel(false)}>
-          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#1a0808', padding: '25px', borderRadius: '16px', border: '2px solid #cc0000', width: '100%', maxWidth: '360px', textAlign: 'center', boxShadow: '0 0 40px rgba(200,0,0,0.3)' }}>
-            <h2 style={{ color: '#ee4444', marginTop: 0 }}>🎰 किस्मत का पहिया</h2>
-            <p style={{ color: '#aa7777', fontSize: '0.85rem', marginTop: '-5px' }}>हफ्ते में 1 बार घुमाओ — FREE कहानी जीतो!</p>
+          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#140a0a', padding: '25px', borderRadius: '16px', border: '2px solid #e60000', width: '100%', maxWidth: '360px', textAlign: 'center', boxShadow: '0 0 40px rgba(230,0,0,0.3)' }}>
+            <h2 style={{ color: '#ff3333', marginTop: 0 }}>🎰 किस्मत का पहिया</h2>
+            <p style={{ color: '#c98a8a', fontSize: '0.85rem', marginTop: '-5px' }}>हफ्ते में 1 बार घुमाओ — FREE कहानी जीतो!</p>
             <div style={{ position: 'relative', width: '250px', height: '250px', margin: '15px auto' }}>
               <div style={{ position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)', fontSize: '1.8rem', zIndex: 2 }}>🔻</div>
-              <div style={{ width: '250px', height: '250px', borderRadius: '50%', border: '6px solid #8b0000', boxSizing: 'border-box', background: 'conic-gradient(#cc0000 0deg 60deg, #1a0a0a 60deg 120deg, #cc0000 120deg 180deg, #1a0a0a 180deg 240deg, #2a0808 240deg 300deg, #1a0a0a 300deg 360deg)', transform: `rotate(${wheelDeg}deg)`, transition: 'transform 4s cubic-bezier(0.15,0.85,0.25,1)' }}></div>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', backgroundColor: '#1a0808', border: '3px solid #8b0000', borderRadius: '50%', width: '55px', height: '55px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '1.5rem' }}>👻</div>
+              <div style={{ width: '250px', height: '250px', borderRadius: '50%', border: '6px solid #8a2222', boxSizing: 'border-box', background: 'conic-gradient(#e60000 0deg 60deg, #1a1a22 60deg 120deg, #e60000 120deg 180deg, #1a1a22 180deg 240deg, #2a0d0d 240deg 300deg, #1a1a22 300deg 360deg)', transform: `rotate(${wheelDeg}deg)`, transition: 'transform 4s cubic-bezier(0.15,0.85,0.25,1)' }}></div>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', backgroundColor: '#140a0a', border: '3px solid #8a2222', borderRadius: '50%', width: '55px', height: '55px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '1.5rem' }}>👻</div>
             </div>
-            <p style={{ color: '#885555', fontSize: '0.8rem' }}>❤️ लाल हिस्सा = 🎁 FREE कहानी</p>
+            <p style={{ color: '#8a5555', fontSize: '0.8rem' }}>❤️ लाल हिस्सा = 🎁 FREE कहानी</p>
             <button onClick={spinWheel} disabled={spinning} style={{ ...orgBtn, padding: '14px 40px', fontSize: '1.1rem', opacity: spinning ? 0.5 : 1 }}>{spinning ? 'घूम रहा है...' : '🎡 घुमाओ!'}</button>
-            {wheelMsg && <p style={{ color: '#ee5555', marginTop: '15px', fontSize: '0.95rem' }}>{wheelMsg}</p>}
+            {wheelMsg && <p style={{ color: '#ff7777', marginTop: '15px', fontSize: '0.95rem' }}>{wheelMsg}</p>}
             {!spinning && <p onClick={() => setShowWheel(false)} style={{ color: '#555', marginTop: '12px', fontSize: '0.8rem', cursor: 'pointer' }}>बंद करो ✕</p>}
           </div>
         </div>
       )}
 
       {readingStory && (
-        <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(5,0,0,0.6)', zIndex: 100, overflowY: 'auto', padding: '15px' }}>
+        <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(5,2,0,0.6)', zIndex: 100, overflowY: 'auto', padding: '15px' }}>
           <div className="vignette"></div>
           <span className="storyBat">🦇</span>
           <div className="spider"><div className="thread"></div>🕷️</div>
           <span className="eyes">👀</span>
           <span className="eyes eyes2">👀</span>
           <div className="fog"></div>
-          <button onClick={closeStory} style={{ position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 110, backgroundColor: '#cc0000', color: '#fff', border: 'none', borderRadius: '25px', padding: '13px 32px', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 25px rgba(200,0,0,0.7)' }}>← वापस</button>
+          <button onClick={closeStory} style={{ position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 110, backgroundColor: '#e60000', color: '#fff', border: 'none', borderRadius: '25px', padding: '13px 32px', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 25px rgba(230,0,0,0.7)' }}>← वापस</button>
           <div style={{ maxWidth: '650px', margin: '35px auto 90px', position: 'relative', zIndex: 102 }}>
             <div className="frame" style={{ padding: '35px 18px 25px' }}>
               <span className="corner" style={{ top: '6px', left: '8px' }}>🕸️</span>
@@ -1154,21 +1160,21 @@ export default function Home() {
               <span className="corner" style={{ bottom: '6px', right: '8px' }}>🦴</span>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '15px' }}>
-                <button onClick={closeStory} style={{ padding: '8px 16px', backgroundColor: 'rgba(0,0,0,0.5)', color: '#ee5555', border: '1px solid #6b1515', borderRadius: '8px', cursor: 'pointer' }}>← वापस</button>
+                <button onClick={closeStory} style={{ padding: '8px 16px', backgroundColor: 'rgba(0,0,0,0.5)', color: '#c96e6e', border: '1px solid #6b1212', borderRadius: '8px', cursor: 'pointer' }}>← वापस</button>
                 <button onClick={() => shareStory(readingStory)} style={{ padding: '8px 16px', backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>📤 Share</button>
                 <button onClick={() => shareCardImg(readingStory)} style={{ padding: '8px 16px', backgroundColor: '#5c1a1a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>🖼️ Poster Share</button>
               </div>
 
               {readingStory.poster && (
-                <div style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', marginBottom: '15px', border: '2px solid #6b1515' }}>
+                <div style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', marginBottom: '15px', border: '2px solid #6b1212' }}>
                   <img src={readingStory.poster} alt={readingStory.title} style={{ width: '100%', display: 'block', filter: (isUnlocked(readingStory) || readingStory.audio) ? 'none' : 'blur(8px)' }} />
                 </div>
               )}
-              <h1 style={{ color: '#ee4444', margin: '0 0 5px', fontSize: '1.6rem', textAlign: 'center', fontFamily: 'Georgia, serif', textShadow: '0 0 15px rgba(200,0,0,0.5)' }}>{readingStory.title}</h1>
-              <p style={{ color: '#885555', textAlign: 'center', margin: '0 0 15px', fontSize: '0.85rem' }}>👁️ {formatViews((readingStory.views || 0) + 1)} बार देखी गई{readingStory.fearCount ? ' • 😱 ' + fearPct(readingStory) + '% लोगों को डर लगा' : ''}</p>
+              <h1 style={{ color: '#ff3333', margin: '0 0 5px', fontSize: '1.6rem', textAlign: 'center', fontFamily: 'Georgia, serif', textShadow: '0 0 15px rgba(255,0,0,0.6)' }}>{readingStory.title}</h1>
+              <p style={{ color: '#8a5555', textAlign: 'center', margin: '0 0 15px', fontSize: '0.85rem' }}>👁️ {formatViews((readingStory.views || 0) + 1)} बार देखी गई{readingStory.fearCount ? ' • 😱 ' + fearPct(readingStory) + '% लोगों को डर लगा' : ''}</p>
 
               {!isUnlocked(readingStory) && readingStory.audio && (
-                <div className={playing ? 'playing' : ''} style={{ backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: '12px', padding: '20px', marginBottom: '22px', border: '1px dashed #cc0000', textAlign: 'center' }}>
+                <div className={playing ? 'playing' : ''} style={{ backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: '12px', padding: '20px', marginBottom: '22px', border: '1px dashed #e60000', textAlign: 'center' }}>
                   <audio ref={audioRef} src={readingStory.audio} preload="metadata" playsInline
                     onTimeUpdate={() => {
                       const a = audioRef.current;
@@ -1183,40 +1189,40 @@ export default function Home() {
                     }}
                     onLoadedMetadata={() => setDuration(audioRef.current ? audioRef.current.duration : 0)}
                     onEnded={() => setPlaying(false)} />
-                  <p style={{ color: '#ee3333', margin: '0 0 10px', fontWeight: 'bold', fontSize: '0.9rem' }}>🎧 45-सेकंड फ्री टीज़र (सुनकर देखें):</p>
+                  <p style={{ color: '#ffcc44', margin: '0 0 10px', fontWeight: 'bold', fontSize: '0.9rem' }}>🎧 45-सेकंड फ्री टीज़र (सुनकर देखें):</p>
                   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: '5px', height: '32px', marginBottom: '14px' }}>
                     <div className="vbar b1" style={{ height: '10px' }}></div><div className="vbar b2" style={{ height: '18px' }}></div>
                     <div className="vbar b3" style={{ height: '14px' }}></div><div className="vbar b4" style={{ height: '22px' }}></div>
                     <div className="vbar b5" style={{ height: '9px' }}></div>
                   </div>
-                  <button onClick={togglePlay} style={{ backgroundColor: '#cc0000', color: 'white', border: 'none', borderRadius: '50%', width: '64px', height: '64px', fontSize: '1.5rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(200,0,0,0.6)' }}>{playing ? '⏸' : '▶'}</button>
-                  <p style={{ color: '#885555', marginTop: '10px', fontSize: '0.78rem' }}>जैसे ही रोमांच चरम पर पहुंचेगा, ऑडियो रुक जाएगा 🎃</p>
+                  <button onClick={togglePlay} style={{ backgroundColor: '#e60000', color: 'white', border: 'none', borderRadius: '50%', width: '64px', height: '64px', fontSize: '1.5rem', cursor: 'pointer', boxShadow: '0 0 20px rgba(230,0,0,0.6)' }}>{playing ? '⏸' : '▶'}</button>
+                  <p style={{ color: '#8a5555', marginTop: '10px', fontSize: '0.78rem' }}>जैसे ही रोमांच चरम पर पहुंचेगा, ऑडियो रुक जाएगा 🎃</p>
                 </div>
               )}
 
               {!isUnlocked(readingStory) && (
                 <div style={{ textAlign: 'center', padding: '15px 10px' }}>
                   <div style={{ fontSize: '3.5rem' }}>🔒</div>
-                  <h2 style={{ color: '#ee4444', margin: '10px 0' }}>यह प्रीमियम कहानी है</h2>
-                  <div style={{ backgroundColor: 'rgba(200,0,0,0.12)', border: '1px dashed #cc0000', borderRadius: '10px', padding: '10px', margin: '10px auto', maxWidth: '320px' }}>
-                    <p style={{ color: '#ee5555', margin: 0, fontSize: '0.9rem', fontWeight: 'bold' }}>⚡ आज का ऑफर खत्म होने में:</p>
+                  <h2 style={{ color: '#ff3333', margin: '10px 0' }}>यह प्रीमियम कहानी है</h2>
+                  <div style={{ backgroundColor: 'rgba(230,0,0,0.12)', border: '1px dashed #e60000', borderRadius: '10px', padding: '10px', margin: '10px auto', maxWidth: '320px' }}>
+                    <p style={{ color: '#ff7777', margin: 0, fontSize: '0.9rem', fontWeight: 'bold' }}>⚡ आज का ऑफर खत्म होने में:</p>
                     <p style={{ color: '#ff4444', margin: '5px 0 0', fontSize: '1.3rem', fontWeight: 'bold', fontFamily: 'monospace' }}>{offerLeft}</p>
-                    <p style={{ color: '#aa7777', margin: '5px 0 0', fontSize: '1rem' }}><s style={{ color: '#777' }}>₹{readingStory.price * 2}</s> <span style={{ color: '#00cc44', fontWeight: 'bold', fontSize: '1.2rem' }}>₹{readingStory.price}</span></p>
+                    <p style={{ color: '#c98a8a', margin: '5px 0 0', fontSize: '1rem' }}><s style={{ color: '#777' }}>₹{readingStory.price * 2}</s> <span style={{ color: '#00cc44', fontWeight: 'bold', fontSize: '1.2rem' }}>₹{readingStory.price}</span></p>
                   </div>
-                  <button onClick={() => payStory(readingStory)} style={{ ...orgBtn, padding: '16px 40px', fontSize: '1.15rem', marginTop: '5px', boxShadow: '0 0 25px rgba(200,0,0,0.4)' }}>💳 ₹{readingStory.price} देकर अनलॉक करो</button>
+                  <button onClick={() => payStory(readingStory)} style={{ ...orgBtn, padding: '16px 40px', fontSize: '1.15rem', marginTop: '5px', boxShadow: '0 0 25px rgba(230,0,0,0.4)' }}>💳 ₹{readingStory.price} देकर अनलॉक करो</button>
                   <p style={{ color: '#666', margin: '15px 0 8px' }}>—— या ——</p>
-                  <button onClick={buyPass} style={{ padding: '14px 28px', background: 'linear-gradient(135deg, #aa0000, #660000)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.95rem', boxShadow: '0 0 20px rgba(170,0,0,0.4)' }}>👑 ₹99 Premium Pass — सब कुछ UNLOCK</button>
-                  <p style={{ color: '#885555', fontSize: '0.75rem', marginTop: '8px' }}>एक बार दो, सभी paid कहानियाँ हमेशा के लिए!</p>
+                  <button onClick={buyPass} style={{ padding: '14px 28px', background: 'linear-gradient(135deg, #ffaa00, #cc7700)', color: '#000', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.95rem', boxShadow: '0 0 20px rgba(255,170,0,0.4)' }}>👑 ₹99 Premium Pass — सब कुछ UNLOCK</button>
+                  <p style={{ color: '#8a5555', fontSize: '0.75rem', marginTop: '8px' }}>एक बार दो, सभी paid कहानियाँ हमेशा के लिए!</p>
                   <p style={{ color: '#666', margin: '15px 0 8px' }}>—— या ——</p>
                   <button onClick={() => shareUnlock(readingStory)} style={{ padding: '13px 28px', backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.95rem' }}>🎁 5 दोस्तों को Share करो, FREE पाओ ({sharesCnt[readingStory.id] || 0}/5)</button>
-                  <p style={{ color: '#885555', fontSize: '0.75rem', marginTop: '8px' }}>WhatsApp par 5 baar share karo aur kahani free unlock!</p>
+                  <p style={{ color: '#8a5555', fontSize: '0.75rem', marginTop: '8px' }}>WhatsApp par 5 baar share karo aur kahani free unlock!</p>
                 </div>
               )}
 
               {isUnlocked(readingStory) && (
                 <>
                   {readingStory.audio && (
-                    <div className={playing ? 'playing' : ''} style={{ backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: '12px', padding: '20px', marginBottom: '15px', border: '1px solid #6b1515', textAlign: 'center' }}>
+                    <div className={playing ? 'playing' : ''} style={{ backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: '12px', padding: '20px', marginBottom: '15px', border: '1px solid #6b1212', textAlign: 'center' }}>
                       <audio ref={audioRef} src={readingStory.audio} preload="metadata" playsInline
                         onTimeUpdate={() => setCurTime(audioRef.current ? audioRef.current.currentTime : 0)}
                         onLoadedMetadata={() => setDuration(audioRef.current ? audioRef.current.duration : 0)}
@@ -1227,16 +1233,16 @@ export default function Home() {
                         <div className="vbar b5" style={{ height: '9px' }}></div>
                       </div>
                       <input type="range" min="0" max={duration || 0} step="0.1" value={curTime} onChange={onSeek} />
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#aa7777', fontSize: '0.8rem', marginTop: '5px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#c98a8a', fontSize: '0.8rem', marginTop: '5px' }}>
                         <span>{formatTime(curTime)}</span><span>{formatTime(duration)}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '22px', marginTop: '14px' }}>
-                        <button onClick={() => skip(-10)} style={{ backgroundColor: '#2a0a0a', color: '#ee5555', border: '1px solid #6b1515', borderRadius: '50%', width: '52px', height: '52px', fontSize: '0.8rem', cursor: 'pointer' }}>-10s</button>
-                        <button onClick={togglePlay} style={{ backgroundColor: '#cc0000', color: 'white', border: 'none', borderRadius: '50%', width: '72px', height: '72px', fontSize: '1.7rem', cursor: 'pointer', boxShadow: '0 0 25px rgba(200,0,0,0.7)' }}>{playing ? '⏸' : '▶'}</button>
-                        <button onClick={() => skip(10)} style={{ backgroundColor: '#2a0a0a', color: '#ee5555', border: '1px solid #6b1515', borderRadius: '50%', width: '52px', height: '52px', fontSize: '0.8rem', cursor: 'pointer' }}>+10s</button>
+                        <button onClick={() => skip(-10)} style={{ backgroundColor: '#2a0d0d', color: '#c96e6e', border: '1px solid #6b1212', borderRadius: '50%', width: '52px', height: '52px', fontSize: '0.8rem', cursor: 'pointer' }}>-10s</button>
+                        <button onClick={togglePlay} style={{ backgroundColor: '#e60000', color: 'white', border: 'none', borderRadius: '50%', width: '72px', height: '72px', fontSize: '1.7rem', cursor: 'pointer', boxShadow: '0 0 25px rgba(230,0,0,0.7)' }}>{playing ? '⏸' : '▶'}</button>
+                        <button onClick={() => skip(10)} style={{ backgroundColor: '#2a0d0d', color: '#c96e6e', border: '1px solid #6b1212', borderRadius: '50%', width: '52px', height: '52px', fontSize: '0.8rem', cursor: 'pointer' }}>+10s</button>
                       </div>
                       <button onClick={() => downloadAudio(readingStory)} style={{ ...orgBtn, padding: '11px 26px', marginTop: '16px', fontSize: '0.9rem' }}>⬇️ ऑडियो डाउनलोड करो</button>
-                      <p style={{ color: '#885555', marginTop: '12px', marginBottom: 0, fontSize: '0.82rem' }}>🎧 हेडफ़ोन लगाओ... अकेले मत सुनना</p>
+                      <p style={{ color: '#8a5555', marginTop: '12px', marginBottom: 0, fontSize: '0.82rem' }}>🎧 हेडफ़ोन लगाओ... अकेले मत सुनना</p>
                     </div>
                   )}
 
@@ -1245,14 +1251,14 @@ export default function Home() {
                       <div style={{ textAlign: 'center' }}>
                         <button onClick={() => downloadText(readingStory)} style={{ ...orgBtn, padding: '9px 22px', marginBottom: '14px', fontSize: '0.85rem' }}>⬇️ कहानी डाउनलोड करो</button>
                       </div>
-                      <div style={{ color: '#e8c8c8', lineHeight: '2', fontSize: '1.1rem', whiteSpace: 'pre-wrap', fontFamily: 'Georgia, serif', padding: '5px 8px 10px' }}>{readingStory.text}</div>
+                      <div style={{ color: '#e8d5b8', lineHeight: '2', fontSize: '1.1rem', whiteSpace: 'pre-wrap', fontFamily: 'Georgia, serif', padding: '5px 8px 10px' }}>{readingStory.text}</div>
                     </>
                   )}
 
-                  <div style={{ backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: '12px', padding: '15px', marginTop: '10px', border: '1px solid #6b1515', textAlign: 'center' }}>
-                    <p style={{ color: '#ee4444', margin: '0 0 8px', fontWeight: 'bold' }}>😱 कितना डर लगा?</p>
+                  <div style={{ backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: '12px', padding: '15px', marginTop: '10px', border: '1px solid #6b1212', textAlign: 'center' }}>
+                    <p style={{ color: '#ff3333', margin: '0 0 8px', fontWeight: 'bold' }}>😱 कितना डर लगा?</p>
                     {fearVotes[readingStory.id] ? (
-                      <p style={{ color: '#aa7777', margin: 0, fontSize: '0.9rem' }}>आपने {fearVotes[readingStory.id]} 💀 दिए! • {fearPct(readingStory)}% लोगों को डर लगा</p>
+                      <p style={{ color: '#c98a8a', margin: 0, fontSize: '0.9rem' }}>आपने {fearVotes[readingStory.id]} 💀 दिए! • {fearPct(readingStory)}% लोगों को डर लगा</p>
                     ) : (
                       <div>
                         {[1, 2, 3, 4, 5].map(n => (
@@ -1263,12 +1269,12 @@ export default function Home() {
                     )}
                   </div>
 
-                  <div style={{ backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: '12px', padding: '15px', marginTop: '15px', border: '1px solid #6b1515' }}>
-                    <p style={{ color: '#ee4444', margin: '0 0 12px', fontWeight: 'bold' }}>💬 Comments ({comments.length})</p>
+                  <div style={{ backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: '12px', padding: '15px', marginTop: '15px', border: '1px solid #6b1212' }}>
+                    <p style={{ color: '#ff3333', margin: '0 0 12px', fontWeight: 'bold' }}>💬 Comments ({comments.length})</p>
 
                     {replyTo && (
-                      <div style={{ backgroundColor: '#1a0808', padding: '8px 12px', borderRadius: '8px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#ee5555', fontSize: '0.8rem' }}>↩️ Reply: <b>{replyTo.name}</b> ko</span>
+                      <div style={{ backgroundColor: '#140a0a', padding: '8px 12px', borderRadius: '8px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: '#ff7777', fontSize: '0.8rem' }}>↩️ Reply: <b>{replyTo.name}</b> ko</span>
                         <button onClick={() => setReplyTo(null)} style={{ backgroundColor: 'transparent', color: '#888', border: 'none', cursor: 'pointer' }}>✕</button>
                       </div>
                     )}
@@ -1280,29 +1286,29 @@ export default function Home() {
                     <div style={{ marginTop: '15px' }}>
                       {comments.filter(c => !c.parentId).length === 0 && <p style={{ color: '#666', fontSize: '0.85rem', textAlign: 'center' }}>अभी कोई comment नहीं... पहला comment आप करो! 👻</p>}
                       {comments.filter(c => !c.parentId).map(c => (
-                        <div key={c.id} style={{ backgroundColor: '#140808', borderRadius: '10px', padding: '12px', marginBottom: '10px', border: c.name.includes('👑') ? '1px solid #cc0000' : '1px solid #2a1515' }}>
+                        <div key={c.id} style={{ backgroundColor: '#14100a', borderRadius: '10px', padding: '12px', marginBottom: '10px', border: c.name.includes('👑') ? '1px solid #e60000' : '1px solid #2a2015' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ color: c.name.includes('👑') ? '#ee4444' : '#4caf50', fontSize: '0.85rem', fontWeight: 'bold' }}>{c.name}</span>
+                              <span style={{ color: c.name.includes('👑') ? '#ff3333' : '#4caf50', fontSize: '0.85rem', fontWeight: 'bold' }}>{c.name}</span>
                               {c.isVIP && (
-                                <span style={{ background: 'linear-gradient(90deg, #aa0000, #cc0000)', color: '#fff', padding: '2px 7px', borderRadius: '10px', fontSize: '0.62rem', fontWeight: 'bold', display: 'inline-block', boxShadow: '0 0 8px rgba(200,0,0,0.5)' }}>👑 VIP MEMBER</span>
+                                <span style={{ background: 'linear-gradient(90deg, #ffaa00, #e60000)', color: '#000', padding: '2px 7px', borderRadius: '10px', fontSize: '0.62rem', fontWeight: 'bold', display: 'inline-block', boxShadow: '0 0 8px rgba(255,50,50,0.5)' }}>👑 VIP MEMBER</span>
                               )}
                             </div>
                             <span style={{ color: '#555', fontSize: '0.7rem' }}>{c.date}</span>
                           </div>
                           <p style={{ color: '#ddd', margin: '6px 0', fontSize: '0.9rem', lineHeight: '1.6', fontFamily: 'sans-serif' }}>{c.text}</p>
                           <div style={{ display: 'flex', gap: '12px' }}>
-                            <button onClick={() => setReplyTo(c)} style={{ backgroundColor: 'transparent', color: '#ee5555', border: 'none', cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}>↩️ Reply</button>
+                            <button onClick={() => setReplyTo(c)} style={{ backgroundColor: 'transparent', color: '#ff7777', border: 'none', cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}>↩️ Reply</button>
                             {isAdmin && <button onClick={() => deleteComment(c.id)} style={{ backgroundColor: 'transparent', color: '#ff4444', border: 'none', cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}>🗑️ Delete</button>}
                           </div>
 
                           {comments.filter(r => r.parentId === c.id).map(r => (
-                            <div key={r.id} style={{ backgroundColor: '#0d0505', borderRadius: '8px', padding: '10px', marginTop: '8px', marginLeft: '15px', borderLeft: '2px solid ' + (r.name.includes('👑') ? '#cc0000' : '#3a2020') }}>
+                            <div key={r.id} style={{ backgroundColor: '#0d0a06', borderRadius: '8px', padding: '10px', marginTop: '8px', marginLeft: '15px', borderLeft: '2px solid ' + (r.name.includes('👑') ? '#e60000' : '#3a3020') }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <span style={{ color: r.name.includes('👑') ? '#ee4444' : '#4caf50', fontSize: '0.8rem', fontWeight: 'bold' }}>{r.name}</span>
+                                  <span style={{ color: r.name.includes('👑') ? '#ff3333' : '#4caf50', fontSize: '0.8rem', fontWeight: 'bold' }}>{r.name}</span>
                                   {r.isVIP && (
-                                    <span style={{ background: 'linear-gradient(90deg, #aa0000, #cc0000)', color: '#fff', padding: '1px 5px', borderRadius: '8px', fontSize: '0.58rem', fontWeight: 'bold' }}>👑 VIP</span>
+                                    <span style={{ background: 'linear-gradient(90deg, #ffaa00, #e60000)', color: '#000', padding: '1px 5px', borderRadius: '8px', fontSize: '0.58rem', fontWeight: 'bold' }}>👑 VIP</span>
                                   )}
                                 </div>
                                 <span style={{ color: '#555', fontSize: '0.65rem' }}>{r.date}</span>
@@ -1324,9 +1330,9 @@ export default function Home() {
 
       {showLogin && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 100, padding: '20px' }} onClick={() => setShowLogin(false)}>
-          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#1a0808', padding: '30px', borderRadius: '16px', border: '2px solid #cc0000', width: '100%', maxWidth: '350px', boxShadow: '0 0 40px rgba(200,0,0,0.3)' }}>
-            <h2 style={{ color: '#ee4444', marginTop: 0, textAlign: 'center' }}>🔐 Admin Login</h2>
-            <p style={{ color: '#885555', fontSize: '0.85rem', textAlign: 'center' }}>Sirf admin ka Google account chalega</p>
+          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#140a0a', padding: '30px', borderRadius: '16px', border: '2px solid #e60000', width: '100%', maxWidth: '350px', boxShadow: '0 0 40px rgba(230,0,0,0.3)' }}>
+            <h2 style={{ color: '#ff3333', marginTop: 0, textAlign: 'center' }}>🔐 Admin Login</h2>
+            <p style={{ color: '#8a5555', fontSize: '0.85rem', textAlign: 'center' }}>Sirf admin ka Google account chalega</p>
             <button onClick={handleLogin} style={{ ...orgBtn, width: '100%', padding: '14px', fontSize: '1rem' }}>🔑 Google Se Login Karo</button>
           </div>
         </div>
@@ -1334,46 +1340,46 @@ export default function Home() {
 
       {showPanel && isAdmin && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', zIndex: 100, padding: '20px', overflowY: 'auto' }}>
-          <div style={{ backgroundColor: '#1a0808', padding: '25px', borderRadius: '16px', border: editId ? '2px solid #aa0000' : '2px solid #cc0000', width: '100%', maxWidth: '550px', margin: '20px 0', boxShadow: '0 0 40px rgba(200,0,0,0.3)' }}>
+          <div style={{ backgroundColor: '#140a0a', padding: '25px', borderRadius: '16px', border: editId ? '2px solid #ffaa00' : '2px solid #e60000', width: '100%', maxWidth: '550px', margin: '20px 0', boxShadow: '0 0 40px rgba(230,0,0,0.3)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ color: editId ? '#ee3333' : '#ee4444', margin: 0, fontSize: '1.3rem' }}>{editId ? '✏️ Edit Story' : '📝 Nayi Story'}</h2>
+              <h2 style={{ color: editId ? '#ffaa00' : '#ff3333', margin: 0, fontSize: '1.3rem' }}>{editId ? '✏️ Edit Story' : '📝 Nayi Story'}</h2>
               <button onClick={() => { setShowPanel(false); clearForm(); }} style={{ backgroundColor: '#331818', color: '#fff', border: 'none', borderRadius: '50%', width: '35px', height: '35px', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
             </div>
             <div style={{ marginTop: '15px' }}>
               <input type="text" placeholder="Title (zaroori)" value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} />
-              <label style={{ color: '#ee5555', fontSize: '0.85rem' }}>🌐 Language:</label>
+              <label style={{ color: '#ff7777', fontSize: '0.85rem' }}>🌐 Language:</label>
               <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', marginTop: '5px' }}>
-                <button onClick={() => setStoryLang('hindi')} style={{ flex: 1, padding: '10px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', backgroundColor: storyLang === 'hindi' ? '#cc0000' : '#0a0505', color: storyLang === 'hindi' ? '#fff' : '#777', border: '1px solid #441515' }}>हिंदी</button>
-                <button onClick={() => setStoryLang('english')} style={{ flex: 1, padding: '10px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', backgroundColor: storyLang === 'english' ? '#cc0000' : '#0a0505', color: storyLang === 'english' ? '#fff' : '#777', border: '1px solid #441515' }}>English</button>
+                <button onClick={() => setStoryLang('hindi')} style={{ flex: 1, padding: '10px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', backgroundColor: storyLang === 'hindi' ? '#e60000' : '#0a0a0a', color: storyLang === 'hindi' ? '#fff' : '#777', border: '1px solid #444' }}>हिंदी</button>
+                <button onClick={() => setStoryLang('english')} style={{ flex: 1, padding: '10px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', backgroundColor: storyLang === 'english' ? '#e60000' : '#0a0a0a', color: storyLang === 'english' ? '#fff' : '#777', border: '1px solid #444' }}>English</button>
               </div>
-              <label style={{ color: '#ee5555', fontSize: '0.85rem' }}>🏷️ Category:</label>
+              <label style={{ color: '#ff7777', fontSize: '0.85rem' }}>🏷️ Category:</label>
               <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', marginTop: '5px', flexWrap: 'wrap' }}>
                 {CATEGORIES.map(ct => (
-                  <button key={ct} onClick={() => setStoryCat(ct)} style={{ padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: storyCat === ct ? '#cc0000' : '#0a0505', color: storyCat === ct ? '#fff' : '#777', border: '1px solid #441515' }}>{ct}</button>
+                  <button key={ct} onClick={() => setStoryCat(ct)} style={{ padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: storyCat === ct ? '#e60000' : '#0a0a0a', color: storyCat === ct ? '#fff' : '#777', border: '1px solid #444' }}>{ct}</button>
                 ))}
               </div>
-              <label style={{ color: '#ee5555', fontSize: '0.85rem' }}>🖼️ Poster Upload Karo:</label>
+              <label style={{ color: '#ff7777', fontSize: '0.85rem' }}>🖼️ Poster Upload Karo:</label>
               <input type="file" accept="image/*" onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0], 'poster')} style={{ ...inputStyle, padding: '8px' }} />
-              {uploading === 'poster' && <p style={{ color: '#ee3333', margin: '0 0 10px' }}>⏳ Poster upload ho raha hai...</p>}
+              {uploading === 'poster' && <p style={{ color: '#ffaa00', margin: '0 0 10px' }}>⏳ Poster upload ho raha hai...</p>}
               {poster && <img src={poster} style={{ width: '80px', borderRadius: '8px', marginBottom: '10px' }} />}
-              <label style={{ color: '#ee5555', fontSize: '0.85rem' }}>🔊 Audio Upload Karo (WhatsApp/M4A/MP3):</label>
-              <input
-                type="file"
-                accept="audio/*,video/*,application/octet-stream,application/x-dec-event,.mp3,.m4a,.aac,.wav,.ogg,.opus,.caf,.amr"
-                onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0], 'audio')}
-                style={{ ...inputStyle, padding: '8px' }}
+              <label style={{ color: '#ff7777', fontSize: '0.85rem' }}>🔊 Audio Upload Karo (WhatsApp/M4A/MP3):</label>
+              <input 
+                type="file" 
+                accept="audio/*,video/*,application/octet-stream,application/x-dec-event,.mp3,.m4a,.aac,.wav,.ogg,.opus,.caf,.amr" 
+                onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0], 'audio')} 
+                style={{ ...inputStyle, padding: '8px' }} 
               />
-              <p style={{ color: '#885555', fontSize: '0.78rem', marginTop: '-8px', marginBottom: '12px' }}>
+              <p style={{ color: '#8a5555', fontSize: '0.78rem', marginTop: '-8px', marginBottom: '12px' }}>
                 💡 Tip: Files open karke apni audio track select karein.
               </p>
-              {uploading === 'audio' && <p style={{ color: '#ee3333', margin: '0 0 10px' }}>⏳ Audio upload ho raha hai...</p>}
+              {uploading === 'audio' && <p style={{ color: '#ffaa00', margin: '0 0 10px' }}>⏳ Audio upload ho raha hai...</p>}
               {audio && <p style={{ color: '#00cc00', margin: '0 0 10px', fontSize: '0.8rem' }}>✅ Audio ready hai</p>}
               <textarea placeholder="Story Text (audio-only ho toh khali chhodo)" value={text} onChange={(e) => setText(e.target.value)} rows="6" style={{ ...inputStyle, resize: 'vertical' }} />
               <div style={{ marginBottom: '12px' }}>
                 <label style={{ color: '#aaa', marginRight: '10px' }}>💰 Price ₹ (0 = Free):</label>
-                <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} style={{ width: '100px', padding: '10px', backgroundColor: '#0a0505', color: 'white', border: '1px solid #441515', borderRadius: '8px' }} />
+                <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} style={{ width: '100px', padding: '10px', backgroundColor: '#0a0a0a', color: 'white', border: '1px solid #444', borderRadius: '8px' }} />
               </div>
-              <button onClick={saveStory} disabled={!!uploading} style={{ ...orgBtn, width: '100%', padding: '15px', fontSize: '1.05rem', backgroundColor: editId ? '#aa0000' : '#cc0000', color: '#fff', opacity: uploading ? 0.5 : 1 }}>{editId ? '✏️ Update Karo' : '✅ Publish Karo'}</button>
+              <button onClick={saveStory} disabled={!!uploading} style={{ ...orgBtn, width: '100%', padding: '15px', fontSize: '1.05rem', backgroundColor: editId ? '#ffaa00' : '#e60000', color: editId ? '#000' : '#fff', opacity: uploading ? 0.5 : 1 }}>{editId ? '✏️ Update Karo' : '✅ Publish Karo'}</button>
             </div>
           </div>
         </div>
