@@ -1,21 +1,23 @@
 {
-  "name": "साया - खौफ़ की हिंदी कहानियाँ",
-  "short_name": "साया",
-  "description": "डर सिर्फ एक कहानी की दूरी पर है... Hindi horror stories - suno aur padho!",
+  "name": "SAYA - Horror Stories",
+  "short_name": "SAYA",
+  "description": "Horror Stories Hindi / English - Audio & Text",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a10",
-  "theme_color": "#ff6600",
+  "background_color": "#0a0305",
+  "theme_color": "#0a0305",
   "icons": [
     {
-      "src": "/icon.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "/saya-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "/icon.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "src": "/saya-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
