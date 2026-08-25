@@ -585,17 +585,21 @@ export default function Home() {
     try { localStorage.setItem('unlocked', JSON.stringify(nu)); } catch (e) {}
   };
 
-  const buyPass = () => {
+    const buyPass = () => {
     if (RAZORPAY_KEY.includes('YAHAN')) return alert('Razorpay Key abhi nahi dali gayi!');
     const rzp = new window.Razorpay({
       key: RAZORPAY_KEY, amount: 99 * 100, currency: 'INR',
-      name: 'साया - Premium Pass 👑', description: 'सभी कहानियाँ हमेशा के लिए UNLOCK',
+      name: 'साया - Monthly Pass 👑', description: 'सभी कहानियाँ 30 दिनों के लिए UNLOCK',
       handler: function () {
+        const exp = Date.now() + 30 * 24 * 3600 * 1000;
         setHasPass(true);
-        try { localStorage.setItem('premiumPass', 'yes'); } catch (e) {}
-        alert('👑 बधाई हो! आप PREMIUM MEMBER हो! 🎉');
+        try {
+          localStorage.setItem('premiumPass', 'yes');
+          localStorage.setItem('premiumPassExp', String(exp));
+        } catch (e) {}
+        alert('👑 बधाई हो! 30 दिनों का PREMIUM चालू हो गया! 🎉');
       },
-      theme: { color: '#e60000' }
+      theme: { color: '#cc0000' }
     });
     rzp.open();
   };
