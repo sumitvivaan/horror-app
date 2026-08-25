@@ -110,7 +110,21 @@ export default function Home() {
     loadStories();
     onAuthStateChanged(auth, (u) => { setIsAdmin(!!u && u.email === ADMIN_EMAIL); });
     try { setUnlocked(JSON.parse(localStorage.getItem('unlocked') || '[]')); } catch (e) {}
-    try { setHasPass(localStorage.getItem('premiumPass') === 'yes'); } catch (e) {}
+        try {
+      const oldPass = localStorage.getItem('premiumPass') === 'yes';
+      const exp = parseInt(localStorage.getItem('premiumPassExp') || '0');
+      if (exp > Date.now()) {
+        setHasPass(true);
+      } else if (oldPass && !exp) {
+        const newExp = Date.now() + 30 * 24 * 3600 * 1000;
+        localStorage.setItem('premiumPassExp', String(newExp));
+        setHasPass(true);
+      } else {
+        setHasPass(false);
+        localStorage.removeItem('premiumPass');
+        localStorage.removeItem('premiumPassExp');
+      }
+    } catch (e) {}
     try { setFearVotes(JSON.parse(localStorage.getItem('fearVotes') || '{}')); } catch (e) {}
     try { setSharesCnt(JSON.parse(localStorage.getItem('sharesCnt') || '{}')); } catch (e) {}
     try {
