@@ -892,15 +892,32 @@ export default function Home() {
       <div style={{ filter: blurBg ? 'blur(8px)' : 'none', pointerEvents: blurBg ? 'none' : 'auto', transition: 'filter 0.3s' }}>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', position: 'sticky', top: 0, zIndex: 50, background: C.nav, backdropFilter: 'blur(8px)', borderBottom: '1px solid ' + C.navBorder }}>
-          <h1 className="sayaTitle" style={{ margin: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.15 }}>
-  <span className="sayaLogo">SAYA</span>
-  <span style={{ fontSize: '0.72rem', color: '#e6c35a', fontFamily: 'Georgia, serif', fontWeight: 'bold', letterSpacing: '1.6px', marginTop: '6px', textShadow: '0 0 10px rgba(255,200,0,0.55)', textAlign: 'center' }}>
-    Horror Stories • Hindi / English
-  </span>
-  <span style={{ fontSize: '0.64rem', color: '#c9a84c', fontFamily: 'sans-serif', letterSpacing: '0.6px', marginTop: '4px', opacity: 0.95, textAlign: 'center' }}>
-    🔊 Audio Stories  •  📖 Text Stories
-  </span>
-</h1>
+                    <h1 className="sayaTitle" style={{ margin: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.15 }}>
+            <span className={dk ? 'sayaLogo' : 'sayaLogoLight'}>SAYA</span>
+            <span style={{
+              fontSize: '0.72rem',
+              color: dk ? '#e6c35a' : '#7a1010',
+              fontFamily: 'Georgia, serif',
+              fontWeight: 'bold',
+              letterSpacing: '1.6px',
+              marginTop: '6px',
+              textShadow: dk ? '0 0 10px rgba(255,200,0,0.55)' : 'none',
+              textAlign: 'center'
+            }}>
+              Horror Stories • Hindi / English
+            </span>
+            <span style={{
+              fontSize: '0.64rem',
+              color: dk ? '#c9a84c' : '#8a2a2a',
+              fontFamily: 'sans-serif',
+              letterSpacing: '0.6px',
+              marginTop: '4px',
+              opacity: 0.95,
+              textAlign: 'center'
+            }}>
+              🔊 Audio Stories  •  📖 Text Stories
+            </span>
+          </h1>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <button onClick={toggleTheme} style={{ padding: '6px 10px', borderRadius: '18px', cursor: 'pointer', fontSize: '1rem', backgroundColor: 'transparent', border: '1px solid ' + C.border }}>{dk ? '☀️' : '🌙'}</button>
             <button onClick={() => setLang('hindi')} style={{ padding: '6px 14px', borderRadius: '18px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: lang === 'hindi' ? '#e60000' : 'transparent', color: lang === 'hindi' ? '#fff' : C.sub, border: lang === 'hindi' ? 'none' : '1px solid ' + C.border }}>हिंदी</button>
