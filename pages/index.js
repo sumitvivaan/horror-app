@@ -27,7 +27,7 @@ function formatViews(n) {
   return String(n);
 }
 
-const isNew = (s) => s.createdAt && (Date.now() - s.createdAt) < 7 * 24 * 3600 * 1000;
+const isNew = (s) => s.createdAt && (Date.now() - s.createdAt) < 2 * 24 * 3600 * 1000;
 
 // 🛡️ UNIVERSAL SAFETY HELPERS (iOS/Android/PC sab jagah safe)
 const hasNotifSupport = () => {
