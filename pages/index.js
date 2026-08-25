@@ -95,6 +95,7 @@ export default function Home() {
   const [catFilter, setCatFilter] = useState('all');
   const [storyCat, setStoryCat] = useState('अन्य');
   const [hasPass, setHasPass] = useState(false);
+    const [passDaysLeft, setPassDaysLeft] = useState(0);
   const [showPushBanner, setShowPushBanner] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [debugSW, setDebugSW] = useState("Checking...");
@@ -109,18 +110,20 @@ export default function Home() {
   useEffect(() => {
     loadStories();
     onAuthStateChanged(auth, (u) => { setIsAdmin(!!u && u.email === ADMIN_EMAIL); });
-    try { setUnlocked(JSON.parse(localStorage.getItem('unlocked') || '[]')); } catch (e) {}
         try {
       const oldPass = localStorage.getItem('premiumPass') === 'yes';
       const exp = parseInt(localStorage.getItem('premiumPassExp') || '0');
       if (exp > Date.now()) {
         setHasPass(true);
+        setPassDaysLeft(Math.max(1, Math.ceil((exp - Date.now()) / (24 * 3600 * 1000))));
       } else if (oldPass && !exp) {
         const newExp = Date.now() + 30 * 24 * 3600 * 1000;
         localStorage.setItem('premiumPassExp', String(newExp));
         setHasPass(true);
+        setPassDaysLeft(30);
       } else {
         setHasPass(false);
+        setPassDaysLeft(0);
         localStorage.removeItem('premiumPass');
         localStorage.removeItem('premiumPassExp');
       }
@@ -593,6 +596,7 @@ export default function Home() {
       handler: function () {
         const exp = Date.now() + 30 * 24 * 3600 * 1000;
         setHasPass(true);
+        setPassDaysLeft(30);
         try {
           localStorage.setItem('premiumPass', 'yes');
           localStorage.setItem('premiumPassExp', String(exp));
@@ -993,7 +997,7 @@ export default function Home() {
           )}
           {hasPass && (
             <div style={{ marginTop: '12px', background: 'linear-gradient(135deg, #3d0000, #1a0000)', border: '2px solid #ffaa00', borderRadius: '14px', padding: '10px 18px', textAlign: 'center' }}>
-              <p style={{ color: '#ee3333', margin: 0, fontWeight: 'bold', fontSize: '0.95rem' }}>👑 Monthly Premium चालू है — सभी कहानियाँ 30 दिनों तक UNLOCKED! 🎉</p>
+              <p style={{ color: '#ee3333', margin: 0, fontWeight: 'bold', fontSize: '0.95rem' }}>👑 Monthly Premium चालू है — {passDaysLeft} दिन बाकी! 🎉</p>
             </div>
           )}
 
