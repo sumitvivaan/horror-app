@@ -221,7 +221,7 @@ export default function Home() {
   }, []);
 
   // 🛡️ iOS-SAFE Push Subscribe
-  const subscribePushNotification = async () => {
+    const subscribePushNotification = async () => {
     setShowPushBanner(false);
     if (!hasNotifSupport()) {
       alert("📲 iPhone users: Pehle app ko Home Screen par Add karo (Share → Add to Home Screen), phir wahan se kholkar notification chalu karo!");
@@ -244,9 +244,6 @@ export default function Home() {
         createdAt: Date.now()
       });
       alert("🎉 बधाई हो! खौफ़ के लाइव अलर्ट चालू हो गए! 👻");
-    } catch (e) {
-      alert("❌ Push error: " + e.message);
-      setDebugPermissionCount(snap.docs.length);
     } catch (e) {
       alert("❌ Push error: " + e.message);
     }
