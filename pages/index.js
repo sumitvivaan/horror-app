@@ -1274,8 +1274,8 @@ export default function Home() {
                   <button onClick={buyPass} style={{ padding: '14px 28px', background: 'linear-gradient(135deg, #ffaa00, #cc7700)', color: '#000', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.95rem', boxShadow: '0 0 20px rgba(255,170,0,0.4)' }}>👑 ₹99 Premium Pass — सब कुछ UNLOCK</button>
                   <p style={{ color: '#885555', fontSize: '0.75rem', marginTop: '8px' }}>₹99 दो, 30 दिनों तक सभी paid कहानियाँ खुल जाएँगी!</p>
                   <p style={{ color: '#666', margin: '15px 0 8px' }}>—— या ——</p>
-                  <button onClick={() => shareUnlock(readingStory)} style={{ padding: '13px 28px', backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.95rem' }}>🎁 5 दोस्तों को Share करो, FREE पाओ ({sharesCnt[readingStory.id] || 0}/5)</button>
-                  <p style={{ color: '#8a5555', fontSize: '0.75rem', marginTop: '8px' }}>WhatsApp par 5 baar share karo aur kahani free unlock!</p>
+                  <button onClick={() => shareUnlock(readingStory)} style={{ padding: '13px 28px', backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.95rem' }}>📤 WhatsApp pe Share karo</button>
+                  <p style={{ color: '#885555', fontSize: '0.75rem', marginTop: '8px' }}>Doston ke saath share karo — unlock ke liye Monthly Pass lo</p>
                 </div>
               )}
 
