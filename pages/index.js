@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { db, auth } from '../lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, orderBy, query, increment } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, orderBy, query, increment, getDoc, setDoc } from 'firebase/firestore';
 
 const ADMIN_EMAIL = "vivaan2024koshiya@gmail.com";
 const CLOUD_NAME = "wlse6ksh";
@@ -44,7 +44,18 @@ function urlBase64ToUint8Array(base64String) {
   }
   return outputArray;
 }
-
+function getDeviceId() {
+  try {
+    let id = localStorage.getItem('saaya_uid');
+    if (!id) {
+      id = 's_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+      localStorage.setItem('saaya_uid', id);
+    }
+    return id;
+  } catch (e) {
+    return 's_temp';
+  }
+}
 export default function Home() {
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -172,6 +183,24 @@ export default function Home() {
       } catch (err) {}
     };
     fetchSubCount();
+        const restorePremium = async () => {
+      try {
+        const uid = getDeviceId();
+        const snap = await getDoc(doc(db, "premium_passes", uid));
+        if (snap.exists()) {
+          const d = snap.data();
+          if (d.exp && d.exp > Date.now()) {
+            setHasPass(true);
+            setPassDaysLeft(Math.max(1, Math.ceil((d.exp - Date.now()) / (24 * 3600 * 1000))));
+            try {
+              localStorage.setItem('premiumPass', 'yes');
+              localStorage.setItem('premiumPassExp', String(d.exp));
+            } catch (e) {}
+          }
+        }
+      } catch (e) {}
+    };
+    restorePremium();
 
     try {
       const params = new URLSearchParams(window.location.search);
@@ -585,13 +614,35 @@ export default function Home() {
     setUnlocked(nu);
     try { localStorage.setItem('unlocked', JSON.stringify(nu)); } catch (e) {}
   };
-
+  const restorePass = async () => {
+    const mob = (prompt('Jis number se Monthly Pass liya tha, wo 10 digit likho:') || '').replace(/\D/g, '').slice(-10);
+    if (mob.length !== 10) return alert('Sahi 10 digit number likho');
+    try {
+      const snap = await getDoc(doc(db, "premium_phones", mob));
+      if (snap.exists() && snap.data().exp > Date.now()) {
+        const d = snap.data();
+        const days = Math.max(1, Math.ceil((d.exp - Date.now()) / (24 * 3600 * 1000)));
+        setHasPass(true);
+        setPassDaysLeft(days);
+        try {
+          localStorage.setItem('premiumPass', 'yes');
+          localStorage.setItem('premiumPassExp', String(d.exp));
+          localStorage.setItem('saaya_phone', mob);
+        } catch (e) {}
+        alert('✅ Pass wapas aa gaya! ' + days + ' din baaki.');
+      } else {
+        alert('Is number pe koi active pass nahi mila. Dusre number se nahi khulega.');
+      }
+    } catch (e) {
+      alert('Restore error: ' + e.message);
+    }
+  };
     const buyPass = () => {
     if (RAZORPAY_KEY.includes('YAHAN')) return alert('Razorpay Key abhi nahi dali gayi!');
     const rzp = new window.Razorpay({
       key: RAZORPAY_KEY, amount: 99 * 100, currency: 'INR',
       name: 'साया - Monthly Pass 👑', description: 'सभी कहानियाँ 30 दिनों के लिए UNLOCK',
-      handler: function () {
+      handler: async function (response) {
         const exp = Date.now() + 30 * 24 * 3600 * 1000;
         setHasPass(true);
         setPassDaysLeft(30);
@@ -599,20 +650,43 @@ export default function Home() {
           localStorage.setItem('premiumPass', 'yes');
           localStorage.setItem('premiumPassExp', String(exp));
         } catch (e) {}
-        alert('👑 बधाई हो! 30 दिनों का PREMIUM चालू हो गया! 🎉');
+        let mob = '';
+        try { mob = localStorage.getItem('saaya_phone') || ''; } catch (e) {}
+        if (!mob) {
+          mob = (prompt('Pass sirf isi number pe chalega. Apna 10 digit mobile likho:') || '').replace(/\D/g, '').slice(-10);
+        }
+        if (mob.length !== 10) {
+          alert('👑 Pass 30 din ke liye khul gaya, lekin number save nahi hua. Dusre phone pe wapas nahi milega.');
+          return;
+        }
+        try {
+          const uid = getDeviceId();
+          localStorage.setItem('saaya_phone', mob);
+          await setDoc(doc(db, "premium_passes", uid), {
+            exp,
+            paymentId: response.razorpay_payment_id || '',
+            type: 'monthly',
+            phone: mob,
+            createdAt: Date.now()
+          }, { merge: true });
+          await setDoc(doc(db, "premium_phones", mob), {
+            exp,
+            uid,
+            paymentId: response.razorpay_payment_id || '',
+            createdAt: Date.now()
+          }, { merge: true });
+        } catch (e) {}
+        alert('👑 Subscription le liya!\nYe pass sirf number ' + mob + ' pe chalega.\n30 din tak dubara paise nahi lagenge.\nPayment ID: ' + (response.razorpay_payment_id || ''));
+      },
+      modal: {
+        ondismiss: function () {
+          alert('Payment cancel ho gayi. Paise nahi kate. Pass nahi laga.');
+        }
       },
       theme: { color: '#cc0000' }
     });
-    rzp.open();
-  };
-
-  const payStory = (story) => {
-    if (RAZORPAY_KEY.includes('YAHAN')) return alert('Razorpay Key abhi nahi dali gayi!');
-    const rzp = new window.Razorpay({
-      key: RAZORPAY_KEY, amount: story.price * 100, currency: 'INR',
-      name: 'साया - खौफ़ की कहानियाँ', description: story.title,
-      handler: function () { doUnlock(story.id); alert('Payment ho gayi! Ab suno aur download karo 🎃'); },
-      theme: { color: '#e60000' }
+    rzp.on('payment.failed', function (resp) {
+      alert('❌ Payment fail: ' + ((resp && resp.error && resp.error.description) || 'Dobara try karo. Paise nahi kate.'));
     });
     rzp.open();
   };
