@@ -642,46 +642,46 @@ export default function Home() {
       alert('Restore error: ' + e.message);
     }
   };
-    const buyPass = () => {
+      const buyPass = () => {
     if (RAZORPAY_KEY.includes('YAHAN')) return alert('Razorpay Key abhi nahi dali gayi!');
     const rzp = new window.Razorpay({
       key: RAZORPAY_KEY, amount: 99 * 100, currency: 'INR',
       name: 'साया - Monthly Pass 👑', description: 'सभी कहानियाँ 30 दिनों के लिए UNLOCK',
       handler: async function (response) {
-        const exp = Date.now() + 30 * 24 * 3600 * 1000;
-        setHasPass(true);
-        setPassDaysLeft(30);
-        try {
-          localStorage.setItem('premiumPass', 'yes');
-          localStorage.setItem('premiumPassExp', String(exp));
-        } catch (e) {}
+        const pid = response.razorpay_payment_id;
+        if (!pid) return alert('Payment ID nahi mili. Pass nahi laga.');
         let mob = '';
         try { mob = localStorage.getItem('saaya_phone') || ''; } catch (e) {}
         if (!mob) {
           mob = (prompt('Pass sirf isi number pe chalega. Apna 10 digit mobile likho:') || '').replace(/\D/g, '').slice(-10);
         }
         if (mob.length !== 10) {
-          alert('👑 Pass 30 din ke liye khul gaya, lekin number save nahi hua. Dusre phone pe wapas nahi milega.');
+          alert('Number galat hai. Payment ho gayi ho to "Pehle se pass hai?" se number daal ke try karo. Payment ID: ' + pid);
           return;
         }
         try {
           const uid = getDeviceId();
+          const res = await fetch('/api/verify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ paymentId: pid, type: 'monthly', uid, phone: mob })
+          });
+          const data = await res.json();
+          if (!data.success) {
+            alert('Payment check fail: ' + (data.error || '') + '\nPayment ID: ' + pid);
+            return;
+          }
           localStorage.setItem('saaya_phone', mob);
-          await setDoc(doc(db, "premium_passes", uid), {
-            exp,
-            paymentId: response.razorpay_payment_id || '',
-            type: 'monthly',
-            phone: mob,
-            createdAt: Date.now()
-          }, { merge: true });
-          await setDoc(doc(db, "premium_phones", mob), {
-            exp,
-            uid,
-            paymentId: response.razorpay_payment_id || '',
-            createdAt: Date.now()
-          }, { merge: true });
-        } catch (e) {}
-        alert('👑 Subscription le liya!\nYe pass sirf number ' + mob + ' pe chalega.\n30 din tak dubara paise nahi lagenge.\nPayment ID: ' + (response.razorpay_payment_id || ''));
+          setHasPass(true);
+          setPassDaysLeft(data.days || 30);
+          try {
+            localStorage.setItem('premiumPass', 'yes');
+            localStorage.setItem('premiumPassExp', String(data.exp));
+          } catch (e) {}
+          alert('👑 Subscription le liya!\nSirf number ' + mob + ' pe chalega.\n30 din tak dubara nahi lagenge.\nPayment ID: ' + pid);
+        } catch (e) {
+          alert('Pass lagane mein error. Payment ID savar lo: ' + pid);
+        }
       },
       modal: {
         ondismiss: function () {
