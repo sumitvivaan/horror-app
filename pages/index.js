@@ -1082,14 +1082,14 @@ export default function Home() {
             </div>
           </div>
 
-                    {!hasPass && !isAdmin && (
+                              {!hasPass && !isAdmin && (
             <>
-              <div onClick={buyPass} style={{ marginTop: '12px', background: 'linear-gradient(135deg, #3d0000, #1a0000)', border: '2px solid #ffaa00', borderRadius: '14px', padding: '14px 18px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 0 20px rgba(255,50,50,0.25)' }}>
+              <div onClick={buyPass} style={{ marginTop: '12px', background: 'linear-gradient(135deg, #2a0505, #150505)', border: '2px solid #aa0000', borderRadius: '14px', padding: '14px 18px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 0 20px rgba(170,0,0,0.25)' }}>
                 <div>
                   <p style={{ color: '#ee3333', margin: 0, fontWeight: 'bold', fontSize: '1rem' }}>👑 Monthly Pass — सिर्फ ₹99 / महीना</p>
                   <p style={{ color: '#aa7777', margin: '3px 0 0', fontSize: '0.78rem' }}>सभी paid कहानियाँ 30 दिनों के लिए UNLOCK — आने वाली भी!</p>
                 </div>
-                <span style={{ backgroundColor: '#ffaa00', color: '#000', padding: '9px 18px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>₹99 लो</span>
+                <span style={{ backgroundColor: '#aa0000', color: '#fff', padding: '9px 18px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>₹99 लो</span>
               </div>
               <p onClick={restorePass} style={{ color: '#ee5555', margin: '8px 0 0', fontSize: '0.75rem', textAlign: 'center', textDecoration: 'underline', cursor: 'pointer' }}>Pehle se pass liya hai? Yahan dabao</p>
             </>
