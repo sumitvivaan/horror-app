@@ -244,7 +244,8 @@ export default function Home() {
         createdAt: Date.now()
       });
       alert("🎉 बधाई हो! खौफ़ के लाइव अलर्ट चालू हो गए! 👻");
-      const snap = await getDocs(collection(db, "push_subscriptions"));
+    } catch (e) {
+      alert("❌ Push error: " + e.message);
       setDebugPermissionCount(snap.docs.length);
     } catch (e) {
       alert("❌ Push error: " + e.message);
