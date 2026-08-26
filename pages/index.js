@@ -170,7 +170,7 @@ export default function Home() {
       } catch (err) {}
     };
     fetchSubCount();
-        const restorePremium = async () => {
+            const restorePremium = async () => {
       try {
         const uid = getDeviceId();
         const snap = await getDoc(doc(db, "premium_passes", uid));
@@ -183,7 +183,25 @@ export default function Home() {
               localStorage.setItem('premiumPass', 'yes');
               localStorage.setItem('premiumPassExp', String(d.exp));
             } catch (e) {}
+          } else {
+            setHasPass(false);
+            setPassDaysLeft(0);
+            try {
+              localStorage.removeItem('premiumPass');
+              localStorage.removeItem('premiumPassExp');
+            } catch (e) {}
           }
+          if (d.unlocked && d.unlocked.length) {
+            setUnlocked(d.unlocked);
+            try { localStorage.setItem('unlocked', JSON.stringify(d.unlocked)); } catch (e) {}
+          }
+        } else {
+          setHasPass(false);
+          setPassDaysLeft(0);
+          try {
+            localStorage.removeItem('premiumPass');
+            localStorage.removeItem('premiumPassExp');
+          } catch (e) {}
         }
       } catch (e) {}
     };
