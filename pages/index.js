@@ -139,6 +139,7 @@ export default function Home() {
         localStorage.removeItem('premiumPassExp');
       }
     } catch (e) {}
+        try { setUnlocked(JSON.parse(localStorage.getItem('unlocked') || '[]')); } catch (e) {}
     try { setFearVotes(JSON.parse(localStorage.getItem('fearVotes') || '{}')); } catch (e) {}
     try { setSharesCnt(JSON.parse(localStorage.getItem('sharesCnt') || '{}')); } catch (e) {}
     try {
@@ -690,7 +691,36 @@ export default function Home() {
     });
     rzp.open();
   };
-
+  const payStory = (story) => {
+    if (RAZORPAY_KEY.includes('YAHAN')) return alert('Razorpay Key abhi nahi dali gayi!');
+    const rzp = new window.Razorpay({
+      key: RAZORPAY_KEY, amount: story.price * 100, currency: 'INR',
+      name: 'साया - खौफ़ की कहानियाँ', description: story.title,
+      handler: async function (response) {
+        doUnlock(story.id);
+        try {
+          const uid = getDeviceId();
+          const unlockedNow = JSON.parse(localStorage.getItem('unlocked') || '[]');
+          await setDoc(doc(db, "premium_passes", uid), {
+            unlocked: unlockedNow,
+            lastPaymentId: response.razorpay_payment_id || '',
+            updatedAt: Date.now()
+          }, { merge: true });
+        } catch (e) {}
+        alert('✅ Payment successful!\nKahani khul gayi.\nPayment ID: ' + (response.razorpay_payment_id || ''));
+      },
+      modal: {
+        ondismiss: function () {
+          alert('Payment cancel. Paise nahi kate. Kahani abhi lock hai.');
+        }
+      },
+      theme: { color: '#cc0000' }
+    });
+    rzp.on('payment.failed', function (resp) {
+      alert('❌ Payment fail: ' + ((resp && resp.error && resp.error.description) || 'Dobara try karo. Paise nahi kate.'));
+    });
+    rzp.open();
+  };
     const shareUnlock = (story) => {
     shareStory(story);
   };
@@ -1052,14 +1082,17 @@ export default function Home() {
             </div>
           </div>
 
-          {!hasPass && !isAdmin && (
-            <div onClick={buyPass} style={{ marginTop: '12px', background: 'linear-gradient(135deg, #3d0000, #1a0000)', border: '2px solid #ffaa00', borderRadius: '14px', padding: '14px 18px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 0 20px rgba(255,50,50,0.25)' }}>
-              <div>
-                <p style={{ color: '#ee3333', margin: 0, fontWeight: 'bold', fontSize: '1rem' }}>👑 Monthly Pass — सिर्फ ₹99 / महीना</p>
-                <p style={{ color: '#aa7777', margin: '3px 0 0', fontSize: '0.78rem' }}>सभी paid कहानियाँ 30 दिनों के लिए UNLOCK — आने वाली भी!</p>
+                    {!hasPass && !isAdmin && (
+            <>
+              <div onClick={buyPass} style={{ marginTop: '12px', background: 'linear-gradient(135deg, #3d0000, #1a0000)', border: '2px solid #ffaa00', borderRadius: '14px', padding: '14px 18px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 0 20px rgba(255,50,50,0.25)' }}>
+                <div>
+                  <p style={{ color: '#ee3333', margin: 0, fontWeight: 'bold', fontSize: '1rem' }}>👑 Monthly Pass — सिर्फ ₹99 / महीना</p>
+                  <p style={{ color: '#aa7777', margin: '3px 0 0', fontSize: '0.78rem' }}>सभी paid कहानियाँ 30 दिनों के लिए UNLOCK — आने वाली भी!</p>
+                </div>
+                <span style={{ backgroundColor: '#ffaa00', color: '#000', padding: '9px 18px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>₹99 लो</span>
               </div>
-              <span style={{ backgroundColor: '#ffaa00', color: '#000', padding: '9px 18px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>₹99 लो</span>
-            </div>
+              <p onClick={restorePass} style={{ color: '#ee5555', margin: '8px 0 0', fontSize: '0.75rem', textAlign: 'center', textDecoration: 'underline', cursor: 'pointer' }}>Pehle se pass liya hai? Yahan dabao</p>
+            </>
           )}
           {hasPass && (
             <div style={{ marginTop: '12px', background: 'linear-gradient(135deg, #3d0000, #1a0000)', border: '2px solid #ffaa00', borderRadius: '14px', padding: '10px 18px', textAlign: 'center' }}>
@@ -1343,7 +1376,7 @@ export default function Home() {
                   </div>
                   <button onClick={() => payStory(readingStory)} style={{ ...orgBtn, padding: '16px 40px', fontSize: '1.15rem', marginTop: '5px', boxShadow: '0 0 25px rgba(230,0,0,0.4)' }}>💳 ₹{readingStory.price} देकर अनलॉक करो</button>
                   <p style={{ color: '#666', margin: '15px 0 8px' }}>—— या ——</p>
-                  <button onClick={buyPass} style={{ padding: '14px 28px', background: 'linear-gradient(135deg, #ffaa00, #cc7700)', color: '#000', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.95rem', boxShadow: '0 0 20px rgba(255,170,0,0.4)' }}>👑 ₹99 Premium Pass — सब कुछ UNLOCK</button>
+                                    <button onClick={buyPass} style={{ padding: '14px 28px', background: 'linear-gradient(135deg, #ffaa00, #cc7700)', color: '#000', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.95rem', boxShadow: '0 0 20px rgba(255,170,0,0.4)' }}>👑 ₹99 / महीना — 30 दिन सब UNLOCK</button>
                   <p style={{ color: '#885555', fontSize: '0.75rem', marginTop: '8px' }}>₹99 दो, 30 दिनों तक सभी paid कहानियाँ खुल जाएँगी!</p>
                   <p style={{ color: '#666', margin: '15px 0 8px' }}>—— या ——</p>
                   <button onClick={() => shareUnlock(readingStory)} style={{ padding: '13px 28px', backgroundColor: '#1a5c2a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.95rem' }}>📤 WhatsApp pe Share karo</button>
