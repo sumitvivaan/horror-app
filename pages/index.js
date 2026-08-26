@@ -619,14 +619,8 @@ export default function Home() {
     rzp.open();
   };
 
-  const shareUnlock = (story) => {
-    const msg = '👻 "' + story.title + '" - darawani kahani suno/padho!\n\n' + window.location.origin + '\n\n🎧 Akele mat sunna...';
-    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
-    const cnt = (sharesCnt[story.id] || 0) + 1;
-    const ns = { ...sharesCnt, [story.id]: cnt };
-    setSharesCnt(ns);
-    try { localStorage.setItem('sharesCnt', JSON.stringify(ns)); } catch (e) {}
-    if (cnt >= 5) { doUnlock(story.id); alert('🎉 5 shares पूरे! कहानी FREE unlock!'); }
+    const shareUnlock = (story) => {
+    shareStory(story);
   };
 
   const rateFear = async (story, n) => {
