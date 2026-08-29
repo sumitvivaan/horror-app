@@ -1,23 +1,29 @@
 {
-  "name": "SAYA - Horror Stories",
+  "name": "SAYA",
   "short_name": "SAYA",
-  "description": "Horror Stories Hindi / English - Audio & Text",
+  "description": "Horror Stories Hindi / English",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0305",
   "theme_color": "#0a0305",
   "icons": [
     {
-      "src": "/saya-logo.png",
+      "src": "/app-icon.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/saya-logo.png",
+      "src": "/app-icon.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/app-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
