@@ -984,9 +984,9 @@ export default function Home() {
     <div style={{ backgroundColor: C.bg, color: C.text, minHeight: '100vh', fontFamily: 'sans-serif', transition: 'background-color 0.4s, color 0.4s' }}>
                   <Head>
         <title>SAYA - Horror Stories Hindi / English</title>
-                <link rel="icon" href="/app-icon.png" />
-        <link rel="shortcut icon" href="/app-icon.png" />
-        <link rel="apple-touch-icon" href="/app-icon.png" />
+                        <link rel="icon" href="/icon.png?v=5" />
+        <link rel="shortcut icon" href="/icon.png?v=5" />
+        <link rel="apple-touch-icon" href="/icon.png?v=5" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-title" content="SAYA" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
